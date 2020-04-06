@@ -5,8 +5,8 @@ $Descr A3 16535 11693
 encoding utf-8
 Sheet 1 1
 Title "EVSE Bricklet"
-Date "2020-04-01"
-Rev "1.0"
+Date "2020-04-06"
+Rev "1.1"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
 Comment2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>"
@@ -1211,7 +1211,7 @@ F 1 "CP/PP/PE" V 15850 1950 50  0000 L CNN
 F 2 "kicad-libraries:OQ_4P_Vertical" H 15850 2150 60  0001 C CNN
 F 3 "" H 15850 2150 60  0000 C CNN
 	1    15850 2150
-	1    0    0    1   
+	1    0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:R R111
@@ -1432,7 +1432,7 @@ F 1 "12V/Motor/GP" V 6700 7250 50  0000 L CNN
 F 2 "kicad-libraries:OQ_8P_Vertical" H 6700 7500 60  0001 C CNN
 F 3 "" H 6700 7500 60  0000 C CNN
 	1    6700 7500
-	-1   0    0    1   
+	-1   0    0    -1  
 $EndComp
 Wire Notes Line
 	6350 500  6350 11200
@@ -1515,7 +1515,7 @@ F 1 "Relay" V 1350 7200 50  0000 L CNN
 F 2 "kicad-libraries:OQ_6P_Vertical" H 1350 7300 60  0001 C CNN
 F 3 "" H 1350 7300 60  0000 C CNN
 	1    1350 7300
-	-1   0    0    1   
+	-1   0    0    -1  
 $EndComp
 Wire Notes Line
 	6350 6150 500  6150
