@@ -2511,4 +2511,5 @@ Text GLabel 4000 2750 2    39   Input ~ 0
 INPUT-GP
 Wire Wire Line
 	3900 2750 4000 2750
+NoConn ~ 3250 700 
 $EndSCHEMATC
