@@ -1,4 +1,4 @@
-(kicad_pcb (version 20171130) (host pcbnew 5.1.5-52549c5~84~ubuntu18.04.1)
+(kicad_pcb (version 20171130) (host pcbnew 5.1.5-52549c5~84~ubuntu19.04.1)
 
   (general
     (thickness 1.6)
@@ -2975,13 +2975,13 @@
   (gr_text "EVSE\n1.1" (at 140.7 69.5) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
-  (gr_text error (at 163.6 81.95) (layer F.SilkS)
+  (gr_text Error (at 163.6 81.95) (layer F.SilkS)
     (effects (font (size 0.75 0.75) (thickness 0.15)) (justify left))
   )
-  (gr_text charge (at 163.6 83.3) (layer F.SilkS)
+  (gr_text Charge (at 163.6 83.3) (layer F.SilkS)
     (effects (font (size 0.75 0.75) (thickness 0.15)) (justify left))
   )
-  (gr_text status (at 163.6 84.65) (layer F.SilkS)
+  (gr_text Status (at 163.6 84.65) (layer F.SilkS)
     (effects (font (size 0.75 0.75) (thickness 0.15)) (justify left))
   )
   (gr_line (start 139 119.65) (end 139 57.15) (layer Edge.Cuts) (width 0.09906))
