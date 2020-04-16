@@ -2,7 +2,7 @@
 
   (general
     (thickness 1.6)
-    (drawings 10)
+    (drawings 11)
     (tracks 1072)
     (zones 0)
     (modules 85)
@@ -15,8 +15,8 @@
   )
 
   (layers
-    (0 F.Cu signal)
-    (31 B.Cu signal)
+    (0 F.Cu signal hide)
+    (31 B.Cu signal hide)
     (32 B.Adhes user)
     (33 F.Adhes user)
     (34 B.Paste user)
@@ -73,7 +73,7 @@
     (pad_to_mask_clearance 0)
     (aux_axis_origin 139 57.15)
     (grid_origin 139 57.15)
-    (visible_elements FFFEFFFF)
+    (visible_elements FFFFFFFF)
     (pcbplotparams
       (layerselection 0x010fc_ffffffff)
       (usegerberextensions true)
@@ -309,7 +309,7 @@
   )
 
   (module kicad-libraries:Logo_CoMCU (layer B.Cu) (tedit 0) (tstamp 5E876ADD)
-    (at 160.2 88.35 180)
+    (at 160.2 90.525 180)
     (fp_text reference G*** (at 0 0) (layer B.SilkS) hide
       (effects (font (size 1.524 1.524) (thickness 0.3)) (justify mirror))
     )
@@ -518,8 +518,8 @@
       (xy -1.232151 -1.7863) (xy -1.155444 -1.784232) (xy -1.083326 -1.807455)) (layer B.SilkS) (width 0.01))
   )
 
-  (module kicad-libraries:WEEE_7mm (layer B.Cu) (tedit 5922FFAE) (tstamp 5E876941)
-    (at 170.2 88.35 180)
+  (module kicad-libraries:WEEE_7mm (layer B.Cu) (tedit 5922FFAE) (tstamp 5E984690)
+    (at 170.2 90.525 180)
     (fp_text reference VAL (at 0 0) (layer B.SilkS) hide
       (effects (font (size 0.2 0.2) (thickness 0.05)) (justify mirror))
     )
@@ -644,7 +644,7 @@
   )
 
   (module kicad-libraries:CE_5mm (layer B.Cu) (tedit 5922FFD4) (tstamp 5E876907)
-    (at 150.2 88.35 180)
+    (at 150.2 90.525 180)
     (fp_text reference VAL (at 0 0) (layer B.SilkS) hide
       (effects (font (size 0.2 0.2) (thickness 0.05)) (justify mirror))
     )
@@ -2965,6 +2965,9 @@
     )
   )
 
+  (gr_text "Change Pin 2 + 3 for better PP resistor connection" (at 172.2 123.25) (layer F.Fab)
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
   (gr_text tinkerforge.com (at 162.8 80.05) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
