@@ -67,12 +67,19 @@ BootloaderHandleMessageResponse test(const Test *data, Test_Response *response) 
 		XMC_GPIO_SetOutputLow(EVSE_ERROR_LED_PIN);
 	}
 
+	if(data->data[5]) {
+		XMC_GPIO_SetOutputHigh(EVSE_CP_PWM_PIN);
+	} else {
+		XMC_GPIO_SetOutputLow(EVSE_CP_PWM_PIN);
+	}
+
 	response->header.length = sizeof(Test_Response);
 	response->data[0] = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN);
 	response->data[1] = XMC_GPIO_GetInput(EVSE_AC1_PIN);
 	response->data[2] = XMC_GPIO_GetInput(EVSE_AC2_PIN);
 	response->data[3] = XMC_GPIO_GetInput(EVSE_INPUT_MOTOR_SWITCH_PIN);
 	response->data[4] = XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN);
+	response->data[5] = XMC_GPIO_GetInput(EVSE_CP_PWM_PIN);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

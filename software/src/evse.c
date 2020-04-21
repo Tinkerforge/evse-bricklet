@@ -28,7 +28,7 @@ EVSE evse;
 void evse_init(void) {
 	const XMC_GPIO_CONFIG_t pin_config = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
-		.output_level     = XMC_GPIO_OUTPUT_LEVEL_HIGH
+		.output_level     = XMC_GPIO_OUTPUT_LEVEL_LOW
 	};
 
 	XMC_GPIO_Init(EVSE_RELAY_PIN,        &pin_config);
@@ -36,6 +36,7 @@ void evse_init(void) {
 	XMC_GPIO_Init(EVSE_MOTOR_ENABLE_PIN, &pin_config);
 	XMC_GPIO_Init(EVSE_CHARGE_LED_PIN,   &pin_config);
 	XMC_GPIO_Init(EVSE_ERROR_LED_PIN,    &pin_config);
+	XMC_GPIO_Init(EVSE_CP_PWM_PIN,    &pin_config);
 }
 
 void evse_tick(void) {
