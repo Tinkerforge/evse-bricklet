@@ -15,7 +15,7 @@
   )
 
   (layers
-    (0 F.Cu signal hide)
+    (0 F.Cu signal)
     (31 B.Cu signal hide)
     (32 B.Adhes user)
     (33 F.Adhes user)
@@ -2346,7 +2346,7 @@
     (fp_text reference RP105 (at -0.61 0) (layer F.Fab)
       (effects (font (size 0.29972 0.29972) (thickness 0.07493)))
     )
-    (fp_text value 1k (at 1.01 -0.02) (layer F.Fab)
+    (fp_text value 10k (at 1.01 -0.02) (layer F.Fab)
       (effects (font (size 0.29972 0.29972) (thickness 0.07493)))
     )
     (fp_line (start -1.6002 -0.8001) (end -1.6002 0.8001) (layer F.Fab) (width 0.01016))
