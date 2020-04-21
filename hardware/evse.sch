@@ -273,7 +273,7 @@ F 3 "" H 2000 3300 50  0000 C CNN
 $EndComp
 Text GLabel 1650 2450 2    39   Output ~ 0
 CP-PWM
-Text GLabel 7000 1900 0    39   Input ~ 0
+Text GLabel 7050 2000 0    39   Input ~ 0
 CP-PWM
 Wire Wire Line
 	1650 3150 1800 3150
@@ -300,16 +300,16 @@ NoConn ~ 1800 2950
 $Comp
 L tinkerforge:R R101
 U 1 1 5E8E92B5
-P 7300 1900
-F 0 "R101" V 7380 1900 50  0000 C CNN
-F 1 "100" V 7300 1900 50  0000 C CNN
-F 2 "kicad-libraries:R0603F" H 7300 1900 60  0001 C CNN
-F 3 "" H 7300 1900 60  0000 C CNN
-	1    7300 1900
+P 7350 2000
+F 0 "R101" V 7430 2000 50  0000 C CNN
+F 1 "100" V 7350 2000 50  0000 C CNN
+F 2 "kicad-libraries:R0603F" H 7350 2000 60  0001 C CNN
+F 3 "" H 7350 2000 60  0000 C CNN
+	1    7350 2000
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	7000 1900 7050 1900
+	7050 2000 7100 2000
 $Comp
 L tinkerforge:MAX14850 U103
 U 1 1 5E8F0598
@@ -446,7 +446,7 @@ Text GLabel 8100 1600 0    39   Input ~ 0
 M-MOSI
 Text GLabel 8100 1500 0    39   Input ~ 0
 M-CLK
-Text GLabel 7600 2000 0    39   Input ~ 0
+Text GLabel 7500 1900 0    39   Input ~ 0
 M-CS
 Wire Wire Line
 	8100 1700 8250 1700
@@ -496,7 +496,6 @@ Wire Wire Line
 	7550 1900 8250 1900
 Wire Wire Line
 	7550 1750 7550 1900
-Connection ~ 7550 1900
 Wire Wire Line
 	7600 2000 7750 2000
 $Comp
@@ -1464,7 +1463,7 @@ L tinkerforge:CP1 C105
 U 1 1 5EF7EFA1
 P 7200 6950
 F 0 "C105" H 7330 6996 50  0000 L CNN
-F 1 "100uF/35V" H 7330 6905 50  0000 L CNN
+F 1 "68uF/25V" H 7330 6905 50  0000 L CNN
 F 2 "kicad-libraries:ELKO_63" H 7330 6859 60  0001 L CNN
 F 3 "" H 7200 6950 60  0000 C CNN
 	1    7200 6950
@@ -2512,4 +2511,7 @@ INPUT-GP
 Wire Wire Line
 	3900 2750 4000 2750
 NoConn ~ 3250 700 
+Wire Wire Line
+	7500 1900 7550 1900
+Connection ~ 7550 1900
 $EndSCHEMATC
