@@ -779,7 +779,7 @@
   )
 
   (module kicad-libraries:Fiducial_Mark (layer F.Cu) (tedit 560531B0) (tstamp 5E876890)
-    (at 141 59.15)
+    (at 140.3 58.45)
     (attr smd)
     (fp_text reference Fiducial_Mark (at 0 0) (layer F.SilkS) hide
       (effects (font (size 0.127 0.127) (thickness 0.03302)))
