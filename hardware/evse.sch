@@ -1134,7 +1134,7 @@ Connection ~ 13050 2450
 Wire Wire Line
 	12850 3500 12850 3050
 Connection ~ 12850 2450
-Text Notes 15600 2200 2    39   ~ 0
+Text Notes 15600 2100 2    39   ~ 0
 CP
 $Comp
 L tinkerforge:VEE #PWR0148
@@ -1376,8 +1376,6 @@ Connection ~ 12250 3500
 Wire Wire Line
 	12250 3500 12350 3500
 Wire Wire Line
-	13850 2200 13850 3500
-Wire Wire Line
 	14750 2500 14150 2500
 Wire Wire Line
 	14150 2500 14150 2550
@@ -1394,8 +1392,6 @@ Wire Wire Line
 	12450 1900 13750 1900
 Wire Wire Line
 	12450 2000 12700 2000
-Wire Wire Line
-	15500 2200 13850 2200
 $Comp
 L tinkerforge:AGND #PWR0139
 U 1 1 5EEDE301
@@ -1625,10 +1621,6 @@ Connection ~ 8600 4200
 Wire Wire Line
 	8600 4650 8600 4600
 Wire Wire Line
-	15500 2100 15450 2100
-Wire Wire Line
-	15450 2100 15450 2050
-Wire Wire Line
 	15450 2000 15500 2000
 Wire Wire Line
 	15450 2050 15350 2050
@@ -1637,7 +1629,7 @@ Wire Wire Line
 	15450 2050 15450 2000
 Text Notes 15600 2300 2    39   ~ 0
 PP
-Text Notes 15600 2100 2    39   ~ 0
+Text Notes 15600 2200 2    39   ~ 0
 PE
 Text Notes 15600 2000 2    39   ~ 0
 PE
@@ -2514,4 +2506,12 @@ NoConn ~ 3250 700
 Wire Wire Line
 	7500 1900 7550 1900
 Connection ~ 7550 1900
+Wire Wire Line
+	15500 2200 15450 2200
+Wire Wire Line
+	15450 2050 15450 2200
+Wire Wire Line
+	15500 2100 13850 2100
+Wire Wire Line
+	13850 2100 13850 3500
 $EndSCHEMATC
