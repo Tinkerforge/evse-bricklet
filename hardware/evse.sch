@@ -226,8 +226,6 @@ Wire Wire Line
 	14000 4100 14200 4100
 Wire Wire Line
 	2250 2750 2300 2750
-Wire Wire Line
-	1700 2550 1500 2550
 $Comp
 L tinkerforge:LED D102
 U 1 1 5E865631
@@ -275,14 +273,6 @@ Text GLabel 1650 2450 2    39   Output ~ 0
 CP-PWM
 Text GLabel 7050 2000 0    39   Input ~ 0
 CP-PWM
-Wire Wire Line
-	1650 3150 1800 3150
-Wire Wire Line
-	1700 3050 1800 3050
-Wire Wire Line
-	1700 2550 1700 3050
-Wire Wire Line
-	1600 3250 1800 3250
 Wire Wire Line
 	2250 2750 2250 3050
 Wire Wire Line
@@ -1727,7 +1717,7 @@ L tinkerforge:R R114
 U 1 1 5F24AEBA
 P 5100 7200
 F 0 "R114" V 5180 7200 50  0000 C CNN
-F 1 "330" V 5100 7200 50  0000 C CNN
+F 1 "150" V 5100 7200 50  0000 C CNN
 F 2 "kicad-libraries:R0603F" H 5100 7200 60  0001 C CNN
 F 3 "" H 5100 7200 60  0000 C CNN
 	1    5100 7200
@@ -1764,7 +1754,7 @@ RELAY
 Wire Wire Line
 	5600 7200 5400 7200
 Connection ~ 5400 7200
-Text GLabel 3400 800  2    39   Output ~ 0
+Text GLabel 1650 2550 2    39   Output ~ 0
 RELAY
 Wire Wire Line
 	1700 7150 3250 7150
@@ -2402,14 +2392,6 @@ Wire Wire Line
 	11700 7450 11550 7450
 Wire Wire Line
 	11550 7450 11550 7550
-Wire Wire Line
-	1650 3150 1650 2650
-Wire Wire Line
-	1650 2650 1500 2650
-Wire Wire Line
-	1500 2750 1600 2750
-Wire Wire Line
-	1600 2750 1600 3250
 $Comp
 L tinkerforge:TVS D110
 U 1 1 5FE2E599
@@ -2502,7 +2484,6 @@ Text GLabel 4000 2750 2    39   Input ~ 0
 INPUT-GP
 Wire Wire Line
 	3900 2750 4000 2750
-NoConn ~ 3250 700 
 Wire Wire Line
 	7500 1900 7550 1900
 Connection ~ 7550 1900
@@ -2570,4 +2551,25 @@ Wire Wire Line
 	10000 1900 10350 1900
 Wire Wire Line
 	10000 700  10000 850 
+Wire Wire Line
+	1500 2550 1650 2550
+Wire Wire Line
+	1700 2650 1500 2650
+Wire Wire Line
+	1650 2750 1500 2750
+Text GLabel 1600 3050 0    39   Input ~ 0
+LED_ERROR
+Text GLabel 3400 800  2    39   Output ~ 0
+LED_ERROR
+NoConn ~ 3250 700 
+Wire Wire Line
+	1600 3050 1800 3050
+Wire Wire Line
+	1800 3150 1700 3150
+Wire Wire Line
+	1700 3150 1700 2650
+Wire Wire Line
+	1650 2750 1650 3250
+Wire Wire Line
+	1650 3250 1800 3250
 $EndSCHEMATC
