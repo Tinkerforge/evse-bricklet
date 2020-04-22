@@ -1367,13 +1367,9 @@ Wire Wire Line
 	12250 3500 12350 3500
 Wire Wire Line
 	14750 2500 14150 2500
-Wire Wire Line
-	14150 2500 14150 2550
 Connection ~ 14150 2500
 Wire Wire Line
 	14150 2500 13750 2500
-Wire Wire Line
-	14150 3050 14150 3100
 Wire Wire Line
 	12450 1600 12850 1600
 Wire Wire Line
@@ -1991,7 +1987,7 @@ F 3 "" H 14950 4600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L tinkerforge:TVS D107
+L tinkerforge:ZENER D107
 U 1 1 5F74A3BF
 P 14150 2800
 F 0 "D107" H 14150 2900 40  0000 L CNN
@@ -2015,7 +2011,7 @@ $EndComp
 Wire Wire Line
 	12250 4100 12250 4050
 $Comp
-L tinkerforge:TVS D106
+L tinkerforge:ZENER D106
 U 1 1 5F7A287F
 P 12650 2750
 F 0 "D106" H 12650 2850 40  0000 L CNN
@@ -2026,11 +2022,7 @@ F 3 "" H 12650 2750 60  0000 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	12650 3050 12650 3000
-Wire Wire Line
 	12850 2450 12650 2450
-Wire Wire Line
-	12650 2450 12650 2500
 Wire Wire Line
 	9750 2000 9750 2550
 Wire Wire Line
@@ -2196,7 +2188,7 @@ F 3 "" H 15350 9550 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L tinkerforge:TVS D104
+L tinkerforge:ZENER D104
 U 1 1 5F96265E
 P 8050 7800
 F 0 "D104" H 8050 7900 40  0000 L CNN
@@ -2245,8 +2237,6 @@ Wire Wire Line
 	7050 7550 7450 7550
 Wire Wire Line
 	7950 7550 8000 7550
-Wire Wire Line
-	8050 7550 8000 7550
 Connection ~ 8000 7550
 $Comp
 L tinkerforge:GND #PWR0168
@@ -2259,8 +2249,6 @@ F 3 "" H 8050 8100 60  0000 C CNN
 	1    8050 8100
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	8050 8100 8050 8050
 $Comp
 L tinkerforge:3V3 #PWR0169
 U 1 1 5F9E2FF7
@@ -2278,9 +2266,6 @@ Text GLabel 8200 7550 2    39   Output ~ 0
 INPUT-MOTOR-SWITCH
 Text GLabel 4000 3050 2    39   Input ~ 0
 INPUT-MOTOR-SWITCH
-Wire Wire Line
-	8200 7550 8050 7550
-Connection ~ 8050 7550
 $Comp
 L tinkerforge:TVS D108
 U 1 1 5FA1C76E
@@ -2393,7 +2378,7 @@ Wire Wire Line
 Wire Wire Line
 	11550 7450 11550 7550
 $Comp
-L tinkerforge:TVS D110
+L tinkerforge:ZENER D110
 U 1 1 5FE2E599
 P 9150 7000
 F 0 "D110" H 9150 7100 40  0000 L CNN
@@ -2427,8 +2412,6 @@ F 3 "" H 9100 6500 60  0000 C CNN
 $EndComp
 Wire Wire Line
 	9050 6750 9100 6750
-Wire Wire Line
-	9150 6750 9100 6750
 Connection ~ 9100 6750
 $Comp
 L tinkerforge:GND #PWR0173
@@ -2441,8 +2424,6 @@ F 3 "" H 9150 7300 60  0000 C CNN
 	1    9150 7300
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	9150 7300 9150 7250
 $Comp
 L tinkerforge:3V3 #PWR0174
 U 1 1 5FE2E5C5
@@ -2458,9 +2439,6 @@ Wire Wire Line
 	9100 6250 9100 6200
 Text GLabel 9300 6750 2    39   Output ~ 0
 INPUT-GP
-Wire Wire Line
-	9300 6750 9150 6750
-Connection ~ 9150 6750
 $Comp
 L tinkerforge:GND #PWR0175
 U 1 1 5FE4AE00
@@ -2572,4 +2550,30 @@ Wire Wire Line
 	1650 2750 1650 3250
 Wire Wire Line
 	1650 3250 1800 3250
+Wire Wire Line
+	14150 3000 14150 3100
+Wire Wire Line
+	14150 2500 14150 2600
+Wire Wire Line
+	12650 2950 12650 3050
+Wire Wire Line
+	12650 2450 12650 2550
+Wire Wire Line
+	8000 7550 8050 7550
+Wire Wire Line
+	8050 8000 8050 8100
+Wire Wire Line
+	9100 6750 9150 6750
+Wire Wire Line
+	8050 7600 8050 7550
+Connection ~ 8050 7550
+Wire Wire Line
+	8050 7550 8200 7550
+Wire Wire Line
+	9150 7200 9150 7300
+Wire Wire Line
+	9150 6800 9150 6750
+Connection ~ 9150 6750
+Wire Wire Line
+	9150 6750 9300 6750
 $EndSCHEMATC
