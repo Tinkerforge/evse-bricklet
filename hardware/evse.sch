@@ -169,7 +169,7 @@ L tinkerforge:LED D101
 U 1 1 5B476059
 P 2500 2750
 F 0 "D101" H 2500 2850 50  0000 C CNN
-F 1 "blue" H 2500 2650 50  0000 C CNN
+F 1 "red" H 2500 2650 50  0000 C CNN
 F 2 "kicad-libraries:D0603F" H 2500 2750 50  0001 C CNN
 F 3 "" H 2500 2750 50  0000 C CNN
 	1    2500 2750
@@ -199,7 +199,7 @@ F 3 "" H 3800 1500 60  0000 C CNN
 $EndComp
 Wire Wire Line
 	1950 1350 1950 1450
-Text Notes 2300 2950 0    39   ~ 0
+Text Notes 2350 3700 0    39   ~ 0
 "status led"
 Wire Wire Line
 	14800 4100 14950 4100
@@ -242,7 +242,7 @@ L tinkerforge:LED D103
 U 1 1 5E865AB8
 P 2500 3550
 F 0 "D103" H 2500 3650 50  0000 C CNN
-F 1 "red" H 2500 3450 50  0000 C CNN
+F 1 "blue" H 2500 3450 50  0000 C CNN
 F 2 "kicad-libraries:D0603F" H 2500 3550 50  0001 C CNN
 F 3 "" H 2500 3550 50  0000 C CNN
 	1    2500 3550
@@ -250,7 +250,7 @@ F 3 "" H 2500 3550 50  0000 C CNN
 $EndComp
 Text Notes 2300 3400 0    39   ~ 0
 "charge led"
-Text Notes 2300 3750 0    39   ~ 0
+Text Notes 2350 2950 0    39   ~ 0
 "error led"
 Wire Wire Line
 	2700 2750 2700 3200
