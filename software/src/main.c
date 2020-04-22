@@ -30,6 +30,7 @@
 #include "communication.h"
 
 #include "evse.h"
+#include "ads1118.h"
 
 int main(void) {
 	logging_init();
@@ -37,10 +38,12 @@ int main(void) {
 
 	communication_init();
 	evse_init();
+	ads1118_init();
 
 	while(true) {
 		bootloader_tick();
 		communication_tick();
 		evse_tick();
+		ads1118_tick();
 	}
 }
