@@ -1,7 +1,7 @@
 /* evse-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
- * config.h: All configurations for EVSE Bricklet
+ * iec61851.h: Implementation of IEC 61851 EVSE state machine
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,22 +19,25 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef CONFIG_GENERAL_H
-#define CONFIG_GENERAL_H
+#ifndef IEC61851_H
+#define IEC61851_H
 
-#include "xmc_device.h"
+typedef enum {
+    IEC61851_STATE_A,  // Standby
+    IEC61851_STATE_B,  // Vehicle Detected
+    IEC61851_STATE_C,  // Ready (Charging)
+    IEC61851_STATE_D,  // Ready with ventilation
+    IEC61851_STATE_EF, // No Power / Error
+} IEC61851State;
 
-#define STARTUP_SYSTEM_INIT_ALREADY_DONE
-#define SYSTEM_TIMER_FREQUENCY 1000 // Use 1 kHz system timer
 
-#define UARTBB_TX_PIN P1_3
+typedef struct {
+    IEC61851State state;
+} IEC61851;
 
-#define FIRMWARE_VERSION_MAJOR 2
-#define FIRMWARE_VERSION_MINOR 0
-#define FIRMWARE_VERSION_REVISION 0
+extern IEC61851 iec61851;
 
-#define SPI_FIFO_COOP_ENABLE
-
-#include "config_custom_bootloader.h"
+void iec61851_init(void);
+void iec61851_tick(void);
 
 #endif

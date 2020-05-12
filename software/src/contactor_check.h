@@ -1,7 +1,7 @@
 /* evse-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
- * config.h: All configurations for EVSE Bricklet
+ * contactor_check.h: Welded/defective contactor check functions
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,22 +19,37 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef CONFIG_GENERAL_H
-#define CONFIG_GENERAL_H
+#ifndef CONTACTOR_CHECK_H
+#define CONTACTOR_CHECK_H
 
-#include "xmc_device.h"
+#include <stdint.h>
+#include <stdbool.h>
 
-#define STARTUP_SYSTEM_INIT_ALREADY_DONE
-#define SYSTEM_TIMER_FREQUENCY 1000 // Use 1 kHz system timer
+typedef enum {
+    CONTACTOR_CHEK_STATE_AC1_NLIVE_AC2_NLIVE = 0,
+    CONTACTOR_CHEK_STATE_AC1_LIVE_AC2_NLIVE  = 1,
+    CONTACTOR_CHEK_STATE_AC1_NLIVE_AC2_LIVE  = 2,
+    CONTACTOR_CHEK_STATE_AC1_LIVE_AC2_LIVE   = 3,
+} ContactorCheckState;
 
-#define UARTBB_TX_PIN P1_3
+typedef struct {
+    uint32_t ac1_edge_count;
+    uint32_t ac2_edge_count;
 
-#define FIRMWARE_VERSION_MAJOR 2
-#define FIRMWARE_VERSION_MINOR 0
-#define FIRMWARE_VERSION_REVISION 0
+    bool ac1_last_value;
+    bool ac2_last_value;
 
-#define SPI_FIFO_COOP_ENABLE
+    uint32_t last_check;
 
-#include "config_custom_bootloader.h"
+    uint8_t invalid_counter;
+
+    ContactorCheckState state;
+    uint8_t error;
+} ContactorCheck;
+
+extern ContactorCheck contactor_check;
+
+void contactor_check_init(void);
+void contactor_check_tick(void);
 
 #endif

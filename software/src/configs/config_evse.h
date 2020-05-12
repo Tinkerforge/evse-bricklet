@@ -24,16 +24,19 @@
 
 #include "xmc_gpio.h"
 
-#define EVSE_RELAY_PIN              P0_5
-#define EVSE_INPUT_GP_PIN           P2_1
-#define EVSE_AC1_PIN                P2_2
-#define EVSE_AC2_PIN                P2_6
-#define EVSE_INPUT_MOTOR_SWITCH_PIN P2_8
-#define EVSE_MOTOR_FAULT_PIN        P2_9
-#define EVSE_MOTOR_PHASE_PIN        P2_10
-#define EVSE_MOTOR_ENABLE_PIN       P2_11
-#define EVSE_CP_PWM_PIN             P1_0
-#define EVSE_CHARGE_LED_PIN         P1_2
-#define EVSE_ERROR_LED_PIN          P1_3
+#define EVSE_CP_PWM_SLICE_NUMBER       0
+#define EVSE_CP_PWM_PIN                P1_0
+
+#define EVSE_MOTOR_ENABLE_SLICE_NUMBER 3
+#define EVSE_MOTOR_ENABLE_PIN          P2_11
+#define EVSE_MOTOR_PHASE_PIN           P2_10
+#define EVSE_MOTOR_FAULT_PIN           P2_9
+#define EVSE_MOTOR_INPUT_SWITCH_PIN    P2_8
+
+#define EVSE_RELAY_PIN                 P0_5
+#define EVSE_INPUT_GP_PIN              P2_1
+
+#define EVSE_CHARGE_LED_PIN            P1_2
+#define EVSE_ERROR_LED_PIN             P1_3
 
 #endif

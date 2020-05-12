@@ -22,7 +22,13 @@
 #include "ads1118.h"
 #include "configs/config_ads1118.h"
 
+#include "bricklib2/utility/util_definitions.h"
 #include "bricklib2/os/coop_task.h"
+#include "bricklib2/logging/logging.h"
+
+#define ADS1118_CONFIGURE_TIMEOUT 200
+
+#include "evse.h"
 
 CoopTask ads1118_task;
 ADS1118 ads1118;
@@ -61,15 +67,152 @@ static void ads1118_init_spi(void) {
 	spi_fifo_init(&ads1118.spi_fifo);
 }
 
+// channel 0 = measure CP
+// channel 1 = measure PP
+// channel 2 = measure temperature
+uint8_t *ads1118_get_config_for_mosi(const uint8_t channel) {
+	static uint8_t mosi[2] = {0, 0};
+
+	uint16_t config = ADS1118_CONFIG_SINGLE_SHOT | ADS1118_CONFIG_POWER_DOWN | ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_8SPS | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
+	switch(channel) {
+		case 0: config |= ADS1118_CONFIG_INP_IS_IN0_AND_INN_IS_IN3; break;
+		case 1: config |= ADS1118_CONFIG_INP_IS_IN2_AND_INN_IS_IN3; break;
+		case 2: config |= ADS1118_CONFIG_TEMPERATURE_MODE;          break;
+		default: break;
+	}
+
+	mosi[0] = (config >> 8) & 0xFF;
+	mosi[1] = (config >> 0) & 0xFF;
+	return mosi;
+}
+
+void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
+	ads1118.cp_adc_value = (miso[1] | (miso[0] << 8));
+
+	// 0.8217V => -12V
+	// 3.9554V =>  12V
+	// 1 LSB = 125uV
+	// ===>
+	// 6574 LSB  => -12V
+	// 31643 LSB =>  12V
+	
+	ads1118.cp_voltage = SCALE(ads1118.cp_adc_value, 6574, 31643, -12000, 12000);
+
+	ads1118.cp_high_voltage = (ads1118.cp_voltage - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;
+
+	// If the measured high voltage is near the calibration max voltage
+	// we assume that there is no resistance
+	if(ABS(ads1118.cp_high_voltage - ads1118.cp_cal_max_voltage) < 1000) {
+		ads1118.cp_pe_resistance = 0xFFFFFFFF;
+	} else {
+		ads1118.cp_pe_resistance = 1000*ads1118.cp_high_voltage/(ads1118.cp_cal_max_voltage - ads1118.cp_high_voltage);
+	}
+}
+
+void ads1118_pp_voltage_from_miso(const uint8_t *miso) {
+	ads1118.pp_adc_value = (miso[1] | (miso[0] << 8));
+
+	// 1 LSB = 125uV
+	ads1118.pp_voltage = ads1118.pp_adc_value/8;
+
+	// If the measured high voltage is near the calibration max voltage
+	// we assume that there is no resistance
+	if(ABS(ads1118.pp_voltage - 4095) < 150) {
+		ads1118.pp_pe_resistance = 0xFFFFFFFF;
+	} else {
+		ads1118.pp_pe_resistance = 1000*ads1118.pp_voltage/(5000 - ads1118.pp_voltage);
+	}
+}
+
 void ads1118_task_tick(void) {
+	const XMC_GPIO_CONFIG_t config_low = {
+		.mode         = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
+		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
+	};
+
+	const XMC_GPIO_CONFIG_t config_select = {
+		.mode         = ADS1118_SELECT_PIN_MODE,
+		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
+	};
+
+	uint8_t miso[2] = {0, 0};
+
+	// Configure CP
+	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0), miso);
+
+	uint32_t select_count = 0;
+	uint32_t configure_time = 0;
 	while(true) {
-		// spi_fifo_coop_transceive(&ads1118.spi_fifo, LENGTH, data, data);
+		// Wait for DRDY
+		coop_task_sleep_ms(10);
+		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+
+		select_count = 0;
+		configure_time = system_timer_get_ms();
+		while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
+			if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
+				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+				spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0), miso);
+				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+				configure_time = system_timer_get_ms();
+			}
+			select_count++;
+			if((select_count % 10000) == 0) {
+				logd("a sel cnt %d\n\r", select_count);
+			}
+			coop_task_yield();
+		}
+		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+		// Read CP -> Configure PP
+		spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(1), miso);
+		if(ads1118.cp_invalid_counter > 0) {
+			ads1118.cp_invalid_counter--;
+		} else {
+			ads1118_cp_voltage_from_miso(miso);
+		}
+
+		// Wait for DRDY
+		coop_task_sleep_ms(10);
+		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+
+		select_count = 0;
+		configure_time = system_timer_get_ms();
+		while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
+			if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
+				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+				spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(1), miso);
+				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+				configure_time = system_timer_get_ms();
+			}
+			select_count++;
+			if((select_count % 10000) == 0) {
+				logd("a sel cnt %d\n\r", select_count);
+			}
+			coop_task_yield();
+		}
+		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+		// Read PP -> Configure CP
+		spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0), miso);
+		if(ads1118.pp_invalid_counter > 0) {
+			ads1118.pp_invalid_counter--;
+		} else {
+			ads1118_pp_voltage_from_miso(miso);
+		}
+
+		logd("resistance CP: %d, PP: %d\n\r", ads1118.cp_pe_resistance, ads1118.pp_pe_resistance);
+		
+		// TODO: Read temperature
+
 		coop_task_yield();
 	}
 }
 
 void ads1118_init(void) {
 	memset(&ads1118, 0, sizeof(ADS1118));
+
+	// TODO: Calibrate min/max voltage
+	ads1118.cp_cal_max_voltage = 12280;
+	ads1118.cp_cal_min_voltage = -12435;
 
 	ads1118_init_spi();
 	coop_task_init(&ads1118_task, ads1118_task_tick);

@@ -1,7 +1,7 @@
 /* evse-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
- * config.h: All configurations for EVSE Bricklet
+ * config_contactor_check.h: Config for welded/defective contactor check
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,22 +19,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef CONFIG_GENERAL_H
-#define CONFIG_GENERAL_H
+#ifndef CONTACTOR_CHECK_CONFIG_H
+#define CONTACTOR_CHECK_CONFIG_H
 
-#include "xmc_device.h"
+#include "xmc_gpio.h"
 
-#define STARTUP_SYSTEM_INIT_ALREADY_DONE
-#define SYSTEM_TIMER_FREQUENCY 1000 // Use 1 kHz system timer
-
-#define UARTBB_TX_PIN P1_3
-
-#define FIRMWARE_VERSION_MAJOR 2
-#define FIRMWARE_VERSION_MINOR 0
-#define FIRMWARE_VERSION_REVISION 0
-
-#define SPI_FIFO_COOP_ENABLE
-
-#include "config_custom_bootloader.h"
+#define CONTACTOR_CHECK_AC1_PIN P2_2
+#define CONTACTOR_CHECK_AC2_PIN P2_6
 
 #endif

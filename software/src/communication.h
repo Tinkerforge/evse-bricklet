@@ -54,22 +54,43 @@ void communication_init(void);
 #define EVSE_STATUS_LED_CONFIG_SHOW_STATUS 3
 
 // Function and callback IDs and structs
-#define FID_TEST 1
+#define FID_SET_LOW_LEVEL_OUTPUT 1
+#define FID_GET_LOW_LEVEL_STATUS 2
 
 
 typedef struct {
 	TFPMessageHeader header;
-	uint32_t data[16];
-} __attribute__((__packed__)) Test;
+	bool low_level_mode_enabled;
+	uint16_t cp_duty_cycle;
+	bool motor_direction;
+	uint16_t motor_duty_cycle;
+	uint16_t relay_enabled;
+	uint32_t password;
+} __attribute__((__packed__)) SetLowLevelOutput;
 
 typedef struct {
 	TFPMessageHeader header;
-	uint32_t data[16];
-} __attribute__((__packed__)) Test_Response;
+} __attribute__((__packed__)) GetLowLevelStatus;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool low_level_mode_enabled;
+	uint16_t cp_duty_cycle;
+	uint16_t motor_direction;
+	uint16_t motor_duty_cycle;
+	uint16_t relay_enabled;
+	int16_t cp_voltage;
+	int16_t pp_voltage;
+	uint8_t ac_input[1];
+	bool gp_input;
+	bool motor_fault;
+	bool motor_switch;
+} __attribute__((__packed__)) GetLowLevelStatus_Response;
 
 
 // Function prototypes
-BootloaderHandleMessageResponse test(const Test *data, Test_Response *response);
+BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data);
+BootloaderHandleMessageResponse get_low_level_status(const GetLowLevelStatus *data, GetLowLevelStatus_Response *response);
 
 // Callbacks
 

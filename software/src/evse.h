@@ -22,12 +22,25 @@
 #ifndef EVSE_H
 #define EVSE_H
 
-typedef struct {
+#include <stdint.h>
+#include <stdbool.h>
 
+#define EVSE_CP_PWM_PERIOD    64000 // 1kHz
+#define EVSE_MOTOR_PWM_PERIOD 6400  // 10kHz
+
+typedef struct {
+	bool     low_level_mode_enabled;
+	uint16_t low_level_cp_duty_cycle;
+	bool     low_level_motor_direction;
+	uint16_t low_level_motor_duty_cycle;
+	uint16_t low_level_relay_enabled;
+    uint32_t low_level_relay_monoflop;
+
+    uint32_t startup_time;
 } EVSE;
 
 extern EVSE evse;
-
+void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor);
 void evse_init(void);
 void evse_tick(void);
 
