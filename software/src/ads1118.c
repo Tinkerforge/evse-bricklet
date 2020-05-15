@@ -199,8 +199,6 @@ void ads1118_task_tick(void) {
 			ads1118_pp_voltage_from_miso(miso);
 		}
 
-		logd("resistance CP: %d, PP: %d\n\r", ads1118.cp_pe_resistance, ads1118.pp_pe_resistance);
-		
 		// TODO: Read temperature
 
 		coop_task_yield();
