@@ -115,7 +115,7 @@ void iec61851_tick(void) {
 
 	if(contactor_check.error != 0) {
 		iec61851.state = IEC61851_STATE_EF;
-	} else if(XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN)) {
+	} else if(!XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN)) {
 		iec61851.state = IEC61851_STATE_A;
 	} else {
 		// Wait for ADC measurements to be valid
@@ -138,9 +138,11 @@ void iec61851_tick(void) {
 
 	if(iec61851.state != last_state) {
 		last_state = iec61851.state;
+#if 0
 		logd("New State: %c\n\r", 'A' + iec61851.state);
 		logd("PP adc %d, vol %d, res %u\n\r", ads1118.pp_adc_value, ads1118.pp_voltage, ads1118.pp_pe_resistance);
 		logd("CP adc %d, vol %d, high %d, res %u\n\r\n\r", ads1118.cp_adc_value, ads1118.cp_voltage, ads1118.cp_high_voltage, ads1118.cp_pe_resistance);
+#endif
 	}
 
 	switch(iec61851.state) {

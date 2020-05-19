@@ -45,7 +45,6 @@ void contactor_check_init(void) {
 }
 
 void contactor_check_tick(void) {
-#if 0
     bool ac1_new_value = XMC_GPIO_GetInput(CONTACTOR_CHECK_AC1_PIN);
     bool ac2_new_value = XMC_GPIO_GetInput(CONTACTOR_CHECK_AC2_PIN);
 
@@ -87,14 +86,9 @@ void contactor_check_tick(void) {
                     case CONTACTOR_CHEK_STATE_AC1_LIVE_AC2_LIVE:   contactor_check.error = 6; break;
                 }
             }
-
-            logd("edge count ac1: %d, ac2: %d, state: %d, error: %d\n\r", 
-                 contactor_check.ac1_edge_count, contactor_check.ac2_edge_count, 
-                 contactor_check.state, contactor_check.error);
         }
 
         contactor_check.ac1_edge_count = 0;
         contactor_check.ac2_edge_count = 0;
     }
-#endif
 }

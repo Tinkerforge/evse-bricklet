@@ -95,6 +95,7 @@ void evse_init(void) {
 	XMC_GPIO_Init(EVSE_MOTOR_PHASE_PIN,  &pin_config_output);
 
 	XMC_GPIO_Init(EVSE_MOTOR_INPUT_SWITCH_PIN, &pin_config_input);
+	XMC_GPIO_Init(EVSE_INPUT_GP_PIN,           &pin_config_input);
 
 	ccu4_pwm_init(EVSE_CP_PWM_PIN, EVSE_CP_PWM_SLICE_NUMBER, EVSE_CP_PWM_PERIOD-1); // 1kHz
 	ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 0);
@@ -105,7 +106,6 @@ void evse_init(void) {
 	evse.startup_time = system_timer_get_ms();
 }
 
-#if 0
 void evse_tick_low_level(void) {
 	ccu4_pwm_set_duty_cycle(EVSE_MOTOR_ENABLE_SLICE_NUMBER, 6400 - evse.low_level_motor_duty_cycle*64/10);
 
@@ -122,15 +122,25 @@ void evse_tick_low_level(void) {
 
 	evse_set_output(evse.low_level_cp_duty_cycle, evse.low_level_relay_enabled);
 }
-#endif
+
+void evse_tick_debug(void) {
+	static uint32_t debug_time = 0;
+	if(system_timer_is_time_elapsed_ms(debug_time, 250)) {
+		debug_time = system_timer_get_ms();
+		uartbb_printf("\n\r");
+		uartbb_printf("IEC61851 State: %d\n\r", iec61851.state);
+		uartbb_printf("Resistance: CP %d, PP %d\n\r", ads1118.cp_pe_resistance, ads1118.pp_pe_resistance);
+		uartbb_printf("Contactor Check: AC1 %d, AC2 %d, State: %d, Error: %d\n\r", contactor_check.ac1_edge_count, contactor_check.ac2_edge_count, contactor_check.state, contactor_check.error);
+		uartbb_printf("GPIO: Input %d, Output %d\n\r", XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN), XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN));
+		uartbb_printf("Lock State: %d\n\r", lock.state);
+	}
+}
 
 void evse_tick(void) {
 	if(evse.low_level_mode_enabled) {
 		// If low level mode is enabled,
 		// everything is handled through the low level API.
-#if 0
 		evse_tick_low_level();
-#endif
 	} else {
 		if(evse.startup_time == 0 || system_timer_is_time_elapsed_ms(evse.startup_time, 1000)) {
 			evse.startup_time = 0;
@@ -140,4 +150,6 @@ void evse_tick(void) {
 			iec61851_tick();
 		}
 	}
+
+	evse_tick_debug();
 }

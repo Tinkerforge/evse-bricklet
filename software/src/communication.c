@@ -27,6 +27,7 @@
 #include "bricklib2/logging/logging.h"
 
 #include "configs/config_evse.h"
+#include "configs/config_contactor_check.h"
 #include "evse.h"
 #include "ads1118.h"
 
@@ -43,7 +44,6 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data) {
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 
-#if 0
 	logd("set_ll pw: %x\n\r", data->password);
 
 	if(data->password != 0x4223B00B) {
@@ -75,12 +75,10 @@ BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *da
 	);
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
-	#endif
 }
 
 BootloaderHandleMessageResponse get_low_level_status(const GetLowLevelStatus *data, GetLowLevelStatus_Response *response) {
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
-#if 0
 	response->header.length          = sizeof(GetLowLevelStatus_Response);
 	response->low_level_mode_enabled = evse.low_level_mode_enabled;
 	response->cp_duty_cycle          = evse.low_level_cp_duty_cycle;
@@ -89,20 +87,19 @@ BootloaderHandleMessageResponse get_low_level_status(const GetLowLevelStatus *da
 	response->relay_enabled          = evse.low_level_relay_enabled;
 	response->cp_voltage             = ads1118.cp_voltage;
 	response->pp_voltage             = ads1118.pp_voltage;
-	response->ac_input[0]            = XMC_GPIO_GetInput(EVSE_AC1_PIN) | (XMC_GPIO_GetInput(EVSE_AC2_PIN) << 1);
+	response->ac_input[0]            = XMC_GPIO_GetInput(CONTACTOR_CHECK_AC1_PIN) | (XMC_GPIO_GetInput(CONTACTOR_CHECK_AC2_PIN) << 1);
 	response->gp_input               = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN);
 	response->motor_fault            = XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN);
 	response->motor_switch           = XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN);
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
-	#endif
 }
 
 
 void communication_tick(void) {
-	communication_callback_tick();
+//	communication_callback_tick();
 }
 
 void communication_init(void) {
-	communication_callback_init();
+//	communication_callback_init();
 }

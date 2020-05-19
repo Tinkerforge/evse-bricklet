@@ -33,10 +33,8 @@
 #define EVSE_MOTOR_FAULT_PIN           P2_9
 #define EVSE_MOTOR_INPUT_SWITCH_PIN    P2_8
 
-#define EVSE_RELAY_PIN                 P0_5
-#define EVSE_INPUT_GP_PIN              P2_1
-
-#define EVSE_CHARGE_LED_PIN            P1_2
-#define EVSE_ERROR_LED_PIN             P1_3
+#define EVSE_RELAY_PIN                 P1_1
+#define EVSE_INPUT_GP_PIN              P2_2
+#define EVSE_OUTPUT_GP_PIN             P2_1
 
 #endif
