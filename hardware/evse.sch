@@ -2478,8 +2478,8 @@ F 3 "" H 3800 1000 60  0000 C CNN
 	1    3800 1000
 	0    -1   -1   0   
 $EndComp
-Text Notes 4450 1600 0    39   ~ 0
-EVSE Configuration\n\nLock Switch Setting (LSS)\nno jumper: invalid\n1<->3: no switch\n3<->5: switch\n\nMaximum Power Setting (MPS)\nno jumper: 13A\n2<->4: 20A\n4<->6: 32A\n
+Text Notes 4250 1950 0    39   ~ 0
+Maximum Power Setting\nno jumper: invalid\n1<->3: 6A\n3<->5: 10A\n2<->4: 13A\n4<->6: 16A\n1<->3, 2<->4: 20A\n1<->3, 4<->6: 25A\n3<->5, 2<->4: 32A\n3<->5, 4<->6: reserved
 Wire Wire Line
 	1500 2750 1650 2750
 Text GLabel 4000 2750 2    39   Output ~ 0
@@ -2650,4 +2650,6 @@ Text Notes 3050 850  0    39   ~ 0
 MPS
 Text Notes 3050 1000 0    39   ~ 0
 LSS
+Text Notes 6600 8100 0    39   ~ 0
+Connect INPUT-GP with OUTPUT-GP to \ndetect fixed cable/jack without lock during boot
 $EndSCHEMATC
