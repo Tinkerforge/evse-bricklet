@@ -5,8 +5,8 @@ $Descr A3 16535 11693
 encoding utf-8
 Sheet 1 1
 Title "EVSE Bricklet"
-Date "2020-04-30"
-Rev "1.3"
+Date "2020-05-19"
+Rev "1.4"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
 Comment2 "Copyright (©) 2020, B.Nordmeyer <bastian@tinkerforge.com>"
@@ -2446,58 +2446,40 @@ Wire Wire Line
 Wire Wire Line
 	12650 2500 12650 2450
 $Comp
-L tinkerforge:CONN_01X04 J102
+L tinkerforge:CONN_02X03 J102
 U 1 1 5EB8828E
-P 3700 950
-F 0 "J102" H 3700 700 50  0000 C CNN
-F 1 "Power Setting" V 3800 950 50  0000 C CNN
-F 2 "kicad-libraries:Pin_Header_Straight_1x04_127" H 3700 950 50  0001 C CNN
-F 3 "" H 3700 950 50  0001 C CNN
-	1    3700 950 
-	1    0    0    1   
+P 4000 1000
+F 0 "J102" H 4000 800 50  0000 C CNN
+F 1 "Config" V 4000 1000 50  0000 C CNN
+F 2 "kicad-libraries:Pin_Header_Straight_2x03_127" H 4000 1000 50  0001 C CNN
+F 3 "" H 4000 1000 50  0001 C CNN
+	1    4000 1000
+	0    -1   -1   0   
 $EndComp
 $Comp
 L tinkerforge:GND #PWR0178
 U 1 1 5EB8E2CE
-P 3500 1150
-F 0 "#PWR0178" H 3500 1150 30  0001 C CNN
-F 1 "GND" H 3500 1080 30  0001 C CNN
-F 2 "" H 3500 1150 60  0000 C CNN
-F 3 "" H 3500 1150 60  0000 C CNN
-	1    3500 1150
+P 4300 1100
+F 0 "#PWR0178" H 4300 1100 30  0001 C CNN
+F 1 "GND" H 4300 1030 30  0001 C CNN
+F 2 "" H 4300 1100 60  0000 C CNN
+F 3 "" H 4300 1100 60  0000 C CNN
+	1    4300 1100
 	1    0    0    -1  
 $EndComp
 $Comp
 L tinkerforge:3V3 #PWR0179
 U 1 1 5EBADD57
-P 3450 800
-F 0 "#PWR0179" H 3450 900 40  0001 C CNN
-F 1 "3V3" H 3450 925 40  0000 C CNN
-F 2 "" H 3450 800 60  0000 C CNN
-F 3 "" H 3450 800 60  0000 C CNN
-	1    3450 800 
+P 3800 1000
+F 0 "#PWR0179" H 3800 1100 40  0001 C CNN
+F 1 "3V3" H 3800 1125 40  0000 C CNN
+F 2 "" H 3800 1000 60  0000 C CNN
+F 3 "" H 3800 1000 60  0000 C CNN
+	1    3800 1000
 	0    -1   -1   0   
 $EndComp
-Wire Wire Line
-	3500 1150 3500 1100
-Wire Wire Line
-	3500 800  3450 800 
-Wire Wire Line
-	3500 1000 3400 1000
-Wire Wire Line
-	3400 1000 3400 900 
-Wire Wire Line
-	3400 900  3000 900 
-Wire Wire Line
-	3500 950  3500 900 
-Wire Wire Line
-	3100 950  3100 1000
-Wire Wire Line
-	3100 1000 3000 1000
-Wire Wire Line
-	3100 950  3500 950 
-Text Notes 3900 1250 0    39   ~ 0
-Power Setting\nNo Jumper: Error (has to be set)\n1<->2: 10A\n2<->3: 16A\n3<->4: 32A
+Text Notes 4450 1600 0    39   ~ 0
+EVSE Configuration\n\nLock Switch Setting (LSS)\nno jumper: invalid\n1<->3: no switch\n3<->5: switch\n\nMaximum Power Setting (MPS)\nno jumper: 10A\n2<->4: 16A\n4<->6: 32A\n
 Wire Wire Line
 	1500 2750 1650 2750
 Text GLabel 4000 2750 2    39   Output ~ 0
@@ -2616,4 +2598,56 @@ Wire Wire Line
 	7900 6500 7900 7350
 Wire Wire Line
 	8450 6900 8450 7250
+Wire Wire Line
+	3750 1150 3500 1150
+Wire Wire Line
+	3500 1150 3500 1000
+Wire Wire Line
+	4100 1250 4200 1250
+Wire Wire Line
+	4200 1250 4200 1100
+Wire Wire Line
+	4200 1100 4300 1100
+Wire Wire Line
+	4100 750  4200 750 
+Wire Wire Line
+	4200 750  4200 900 
+Wire Wire Line
+	4200 900  4300 900 
+Wire Wire Line
+	4300 900  4300 1100
+Connection ~ 4300 1100
+Wire Wire Line
+	4000 1250 4000 1300
+Wire Wire Line
+	4000 1300 3750 1300
+Wire Wire Line
+	3750 1300 3750 1150
+Wire Wire Line
+	4000 750  4000 700 
+Wire Wire Line
+	4000 700  3750 700 
+Wire Wire Line
+	3750 700  3750 850 
+Wire Wire Line
+	3900 1250 3800 1250
+Wire Wire Line
+	3800 1250 3800 1000
+Wire Wire Line
+	3900 750  3800 750 
+Wire Wire Line
+	3800 750  3800 1000
+Connection ~ 3800 1000
+Wire Wire Line
+	3000 900  3050 900 
+Wire Wire Line
+	3050 900  3050 850 
+Wire Wire Line
+	3050 850  3750 850 
+Wire Wire Line
+	3000 1000 3500 1000
+Text Notes 3050 850  0    39   ~ 0
+MPS
+Text Notes 3050 1000 0    39   ~ 0
+LSS
 $EndSCHEMATC
