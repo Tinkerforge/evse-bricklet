@@ -28,6 +28,16 @@
 #define EVSE_CP_PWM_PERIOD    64000 // 1kHz
 #define EVSE_MOTOR_PWM_PERIOD 6400  // 10kHz
 
+#define EVSE_CONFIG_JUMPER_CURRENT_6A 0
+#define EVSE_CONFIG_JUMPER_CURRENT_10A 1
+#define EVSE_CONFIG_JUMPER_CURRENT_13A 2
+#define EVSE_CONFIG_JUMPER_CURRENT_16A 3
+#define EVSE_CONFIG_JUMPER_CURRENT_20A 4
+#define EVSE_CONFIG_JUMPER_CURRENT_25A 5
+#define EVSE_CONFIG_JUMPER_CURRENT_32A 6
+#define EVSE_CONFIG_JUMPER_SOFTWARE 7
+#define EVSE_CONFIG_JUMPER_UNCONFIGURED 8
+
 typedef struct {
 	bool     low_level_mode_enabled;
 	uint16_t low_level_cp_duty_cycle;
@@ -37,6 +47,11 @@ typedef struct {
     uint32_t low_level_relay_monoflop;
 
     uint32_t startup_time;
+
+	uint8_t config_jumper_current;
+	bool has_lock_switch;
+
+	uint16_t config_jumper_current_software;
 } EVSE;
 
 extern EVSE evse;

@@ -24,21 +24,44 @@
 #include "bricklib2/utility/communication_callback.h"
 #include "bricklib2/protocols/tfp/tfp.h"
 #include "bricklib2/hal/system_timer/system_timer.h"
+#include "bricklib2/hal/ccu4_pwm/ccu4_pwm.h"
 #include "bricklib2/logging/logging.h"
 
 #include "configs/config_evse.h"
 #include "configs/config_contactor_check.h"
 #include "evse.h"
 #include "ads1118.h"
+#include "iec61851.h"
+#include "led.h"
+#include "contactor_check.h"
+#include "lock.h"
 
 #define LOW_LEVEL_PASSWORD 0x4223B00B
 
 BootloaderHandleMessageResponse handle_message(const void *message, void *response) {
 	switch(tfp_get_fid_from_message(message)) {
+		case FID_GET_STATE: return get_state(message, response);
 		case FID_SET_LOW_LEVEL_OUTPUT: return set_low_level_output(message);
 		case FID_GET_LOW_LEVEL_STATUS: return get_low_level_status(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
+}
+
+BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response) {
+	response->header.length        = sizeof(GetState_Response);
+	response->iec61851_state       = iec61851.state;
+	response->led_state            = led.state;
+	response->resistance[0]        = ads1118.cp_pe_resistance;
+	response->resistance[1]        = ads1118.pp_pe_resistance;
+	response->cp_pwm_duty_cycle    = (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
+	response->contactor_state      = contactor_check.state;
+	response->contactor_error      = contactor_check.error;
+	response->gpio[0]              = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN) | (XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN) << 1) | (XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN) << 2) | (XMC_GPIO_GetInput(EVSE_RELAY_PIN) << 3);
+	response->lock_state           = lock.state;
+	response->jumper_configuration = evse.config_jumper_current;
+	response->has_lock_switch      = evse.has_lock_switch;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
 BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data) {

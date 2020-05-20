@@ -35,6 +35,39 @@ void communication_init(void);
 
 // Constants
 
+#define EVSE_IEC61851_STATE_A 0
+#define EVSE_IEC61851_STATE_B 1
+#define EVSE_IEC61851_STATE_C 2
+#define EVSE_IEC61851_STATE_D 3
+#define EVSE_IEC61851_STATE_EF 4
+
+#define EVSE_LED_STATE_OFF 0
+#define EVSE_LED_STATE_ON 1
+#define EVSE_LED_STATE_BLINKING 2
+#define EVSE_LED_STATE_BREATHING 3
+
+#define EVSE_CONTACTOR_STATE_AC1_NLIVE_AC2_NLIVE 0
+#define EVSE_CONTACTOR_STATE_AC1_LIVE_AC2_NLIVE 1
+#define EVSE_CONTACTOR_STATE_AC1_NLIVE_AC2_LIVE 2
+#define EVSE_CONTACTOR_STATE_AC1_LIVE_AC2_LIVE 3
+
+#define EVSE_LOCK_STATE_INIT 0
+#define EVSE_LOCK_STATE_OPEN 1
+#define EVSE_LOCK_STATE_CLOSING 2
+#define EVSE_LOCK_STATE_CLOSE 3
+#define EVSE_LOCK_STATE_OPENING 4
+#define EVSE_LOCK_STATE_ERROR 5
+
+#define EVSE_JUMPER_CONFIGURATION_6A 0
+#define EVSE_JUMPER_CONFIGURATION_10A 1
+#define EVSE_JUMPER_CONFIGURATION_13A 2
+#define EVSE_JUMPER_CONFIGURATION_16A 3
+#define EVSE_JUMPER_CONFIGURATION_20A 4
+#define EVSE_JUMPER_CONFIGURATION_25A 5
+#define EVSE_JUMPER_CONFIGURATION_32A 6
+#define EVSE_JUMPER_CONFIGURATION_SOFTWARE 7
+#define EVSE_JUMPER_CONFIGURATION_UNCONFIGURED 8
+
 #define EVSE_BOOTLOADER_MODE_BOOTLOADER 0
 #define EVSE_BOOTLOADER_MODE_FIRMWARE 1
 #define EVSE_BOOTLOADER_MODE_BOOTLOADER_WAIT_FOR_REBOOT 2
@@ -54,9 +87,28 @@ void communication_init(void);
 #define EVSE_STATUS_LED_CONFIG_SHOW_STATUS 3
 
 // Function and callback IDs and structs
-#define FID_SET_LOW_LEVEL_OUTPUT 1
-#define FID_GET_LOW_LEVEL_STATUS 2
+#define FID_GET_STATE 1
+#define FID_SET_LOW_LEVEL_OUTPUT 2
+#define FID_GET_LOW_LEVEL_STATUS 3
 
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetState;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t iec61851_state;
+	uint8_t led_state;
+	uint32_t resistance[2];
+	uint16_t cp_pwm_duty_cycle;
+	uint8_t contactor_state;
+	uint8_t contactor_error;
+	uint8_t gpio[1];
+	uint8_t lock_state;
+	uint8_t jumper_configuration;
+	bool has_lock_switch;
+} __attribute__((__packed__)) GetState_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -89,6 +141,7 @@ typedef struct {
 
 
 // Function prototypes
+BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
 BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data);
 BootloaderHandleMessageResponse get_low_level_status(const GetLowLevelStatus *data, GetLowLevelStatus_Response *response);
 

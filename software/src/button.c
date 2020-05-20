@@ -1,7 +1,7 @@
 /* evse-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
- * main.c: Initialization for EVSE Bricklet
+ * button.c: EVSE button driver
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,45 +19,43 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <stdio.h>
-#include <stdbool.h>
-
-#include "configs/config.h"
-
-#include "bricklib2/bootloader/bootloader.h"
-#include "bricklib2/hal/system_timer/system_timer.h"
-#include "bricklib2/logging/logging.h"
-#include "communication.h"
-
-#include "evse.h"
-#include "ads1118.h"
-#include "iec61851.h"
-#include "lock.h"
-#include "contactor_check.h"
-#include "led.h"
 #include "button.h"
 
-int main(void) {
-	logging_init();
-	logd("Start EVSE Bricklet\n\r");
+#include "configs/config_evse.h"
 
-	communication_init();
-	evse_init();
-	ads1118_init();
-	iec61851_init();
-	lock_init();
-	contactor_check_init();
-	led_init();
-	button_init();
+#include "bricklib2/hal/system_timer/system_timer.h"
 
-	while(true) {
-		bootloader_tick();
-		communication_tick();
-		evse_tick();
-		ads1118_tick();
-		lock_tick();
-		contactor_check_tick();
-		led_tick();
-		button_tick();
+#include <string.h>
+
+#define BUTTON_DEBOUNCE 100 // ms
+
+Button button;
+
+void button_init(void) {
+	memset(&button, 0, sizeof(Button));
+}
+
+void button_tick(void) {
+	const bool value = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN);
+
+	if(value != button.last_value) {
+		button.last_value = value;
+		button.last_change_time = system_timer_get_ms();
+	}
+
+	if(button.last_change_time != 0 && system_timer_is_time_elapsed_ms(button.last_change_time, BUTTON_DEBOUNCE)) {
+		button.last_change_time = 0;
+		if(value) {
+			button.state = BUTTON_STATE_RELEASED;
+		} else {
+			button.state = BUTTON_STATE_PRESSED;
+			button.was_pressed = true;
+		}
+	}
+}
+
+void button_reset(void) {
+	if(button.state != BUTTON_STATE_PRESSED) {
+		button.was_pressed = false;
 	}
 }

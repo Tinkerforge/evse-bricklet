@@ -39,6 +39,7 @@ typedef struct {
     uint16_t duty_cycle;
 
     uint32_t last_input_switch_seen;
+    uint32_t lock_start;
 
     LockState state;
 } Lock;

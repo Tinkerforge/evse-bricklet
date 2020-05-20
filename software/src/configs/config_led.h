@@ -1,7 +1,7 @@
 /* evse-bricklet
  * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
  *
- * contactor_check.h: Welded/defective contactor check functions
+ * config_led.h: EVSE LED config
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,37 +19,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef CONTACTOR_CHECK_H
-#define CONTACTOR_CHECK_H
+#ifndef CONFIG_LED_H
+#define CONFIG_LED_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "xmc_gpio.h"
 
-typedef enum {
-    CONTACTOR_CHECK_STATE_AC1_NLIVE_AC2_NLIVE = 0,
-    CONTACTOR_CHECK_STATE_AC1_LIVE_AC2_NLIVE  = 1,
-    CONTACTOR_CHECK_STATE_AC1_NLIVE_AC2_LIVE  = 2,
-    CONTACTOR_CHECK_STATE_AC1_LIVE_AC2_LIVE   = 3,
-} ContactorCheckState;
-
-typedef struct {
-    uint32_t ac1_edge_count;
-    uint32_t ac2_edge_count;
-
-    bool ac1_last_value;
-    bool ac2_last_value;
-
-    uint32_t last_check;
-
-    uint8_t invalid_counter;
-
-    ContactorCheckState state;
-    uint8_t error;
-} ContactorCheck;
-
-extern ContactorCheck contactor_check;
-
-void contactor_check_init(void);
-void contactor_check_tick(void);
+#define EVSE_LED_SLICE_NUMBER  1
+#define EVSE_LED_PIN           P2_1
 
 #endif

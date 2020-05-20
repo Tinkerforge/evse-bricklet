@@ -72,18 +72,18 @@ void contactor_check_tick(void) {
             if(XMC_GPIO_GetInput(EVSE_RELAY_PIN)) {
                 // If contact is switched on, we expect to have 230V AC on both sides of it
                 switch(contactor_check.state) {
-                    case CONTACTOR_CHEK_STATE_AC1_NLIVE_AC2_NLIVE: contactor_check.error = 1; break;
-                    case CONTACTOR_CHEK_STATE_AC1_LIVE_AC2_NLIVE:  contactor_check.error = 2; break;
-                    case CONTACTOR_CHEK_STATE_AC1_NLIVE_AC2_LIVE:  contactor_check.error = 3; break;
-                    case CONTACTOR_CHEK_STATE_AC1_LIVE_AC2_LIVE:   contactor_check.error = 0; break;
+                    case CONTACTOR_CHECK_STATE_AC1_NLIVE_AC2_NLIVE: contactor_check.error = 1; break;
+                    case CONTACTOR_CHECK_STATE_AC1_LIVE_AC2_NLIVE:  contactor_check.error = 2; break;
+                    case CONTACTOR_CHECK_STATE_AC1_NLIVE_AC2_LIVE:  contactor_check.error = 3; break;
+                    case CONTACTOR_CHECK_STATE_AC1_LIVE_AC2_LIVE:   contactor_check.error = 0; break;
                 }
             } else {
                 // If contact is switched off, we expect to have 230V AC on AC1 and nothing on AC2
                 switch(contactor_check.state) {
-                    case CONTACTOR_CHEK_STATE_AC1_NLIVE_AC2_NLIVE: contactor_check.error = 4; break;
-                    case CONTACTOR_CHEK_STATE_AC1_LIVE_AC2_NLIVE:  contactor_check.error = 0; break;
-                    case CONTACTOR_CHEK_STATE_AC1_NLIVE_AC2_LIVE:  contactor_check.error = 5; break;
-                    case CONTACTOR_CHEK_STATE_AC1_LIVE_AC2_LIVE:   contactor_check.error = 6; break;
+                    case CONTACTOR_CHECK_STATE_AC1_NLIVE_AC2_NLIVE: contactor_check.error = 4; break;
+                    case CONTACTOR_CHECK_STATE_AC1_LIVE_AC2_NLIVE:  contactor_check.error = 0; break;
+                    case CONTACTOR_CHECK_STATE_AC1_NLIVE_AC2_LIVE:  contactor_check.error = 5; break;
+                    case CONTACTOR_CHECK_STATE_AC1_LIVE_AC2_LIVE:   contactor_check.error = 6; break;
                 }
             }
         }

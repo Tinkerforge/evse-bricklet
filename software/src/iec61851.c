@@ -32,6 +32,8 @@
 #include "lock.h"
 #include "evse.h"
 #include "contactor_check.h"
+#include "led.h"
+#include "button.h"
 
 // Resistance between CP/PE
 // inf  Ohm -> no car present
@@ -74,6 +76,24 @@ uint32_t iec61851_get_ma_from_pp_resistance(void) {
 	}
 }
 
+uint32_t iec61851_get_ma_from_jumper(void) {
+	switch(evse.config_jumper_current) {
+		case EVSE_CONFIG_JUMPER_CURRENT_6A:  return 6000;
+		case EVSE_CONFIG_JUMPER_CURRENT_10A: return 10000;
+		case EVSE_CONFIG_JUMPER_CURRENT_13A: return 13000;
+		case EVSE_CONFIG_JUMPER_CURRENT_16A: return 16000;
+		case EVSE_CONFIG_JUMPER_CURRENT_20A: return 20000;
+		case EVSE_CONFIG_JUMPER_CURRENT_25A: return 25000;
+		case EVSE_CONFIG_JUMPER_CURRENT_32A: return 32000;
+		case EVSE_CONFIG_JUMPER_SOFTWARE: return evse.config_jumper_current_software;
+		default: return 6000;
+	}
+}
+
+uint32_t iec61851_get_max_ma(void) {
+	return MIN(iec61851_get_ma_from_pp_resistance(), iec61851_get_ma_from_jumper());
+}
+
 // Duty cycle in pro mille (1/10 %)
 uint16_t iec61851_get_duty_cycle_for_ma(uint32_t ma) {
 	uint32_t duty_cycle = ma/60;
@@ -85,37 +105,49 @@ uint16_t iec61851_get_duty_cycle_for_ma(uint32_t ma) {
 void iec61851_state_a(void) {
 	// Apply +12V to CP, disable contactor
 	evse_set_output(1000, false);
+	led.state = LED_STATE_OFF;
+
+	if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A) {
+		button_reset();
+	}
 }
 
 void iec61851_state_b(void) {
 	// Apply 1kHz square wave to CP with appropriate duty cycle, disable contactor
-	uint32_t ma_pp = iec61851_get_ma_from_pp_resistance();
-	evse_set_output(iec61851_get_duty_cycle_for_ma(ma_pp), false);
+	uint32_t ma = iec61851_get_max_ma();
+	evse_set_output(iec61851_get_duty_cycle_for_ma(ma), false);
+	led.state = LED_STATE_ON;
 }
 
 void iec61851_state_c(void) {
 	// Apply 1kHz square wave to CP with appropriate duty cycle, enable contactor
-	uint32_t ma_pp = iec61851_get_ma_from_pp_resistance();
-	evse_set_output(iec61851_get_duty_cycle_for_ma(ma_pp), true);
+	uint32_t ma = iec61851_get_max_ma();
+	evse_set_output(iec61851_get_duty_cycle_for_ma(ma), true);
+	led.state = LED_STATE_BREATHING;
 }
 
 void iec61851_state_d(void) {
 	// State D is not supported
 	// Apply +12V to CP, disable contactor
 	evse_set_output(1000, false);
+	led.state = LED_STATE_BLINKING;
 }
 
 void iec61851_state_ef(void) {
 	// In case of error apply +12V to CP, disable contactor
 	evse_set_output(1000, false);
+	led.state = LED_STATE_BLINKING;
+	// TODO: Add different blinking states for different errors
 }
 
 void iec61851_tick(void) {
-	static IEC61851State last_state = IEC61851_STATE_EF;
-
 	if(contactor_check.error != 0) {
 		iec61851.state = IEC61851_STATE_EF;
-	} else if(!XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN)) {
+	} else if(evse.config_jumper_current == EVSE_CONFIG_JUMPER_UNCONFIGURED) {
+		// We don't allow the jumper to be unconfigured
+		iec61851.state = IEC61851_STATE_EF;
+	} else if(button.was_pressed) {
+		// TODO: If button is pressed stay in state A until cable is removed
 		iec61851.state = IEC61851_STATE_A;
 	} else {
 		// Wait for ADC measurements to be valid
@@ -134,15 +166,6 @@ void iec61851_tick(void) {
 		} else {
 			iec61851.state = IEC61851_STATE_EF;
 		}
-	}
-
-	if(iec61851.state != last_state) {
-		last_state = iec61851.state;
-#if 0
-		logd("New State: %c\n\r", 'A' + iec61851.state);
-		logd("PP adc %d, vol %d, res %u\n\r", ads1118.pp_adc_value, ads1118.pp_voltage, ads1118.pp_pe_resistance);
-		logd("CP adc %d, vol %d, high %d, res %u\n\r\n\r", ads1118.cp_adc_value, ads1118.cp_voltage, ads1118.cp_high_voltage, ads1118.cp_pe_resistance);
-#endif
 	}
 
 	switch(iec61851.state) {

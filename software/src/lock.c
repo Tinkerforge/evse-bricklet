@@ -69,6 +69,7 @@ void lock_tick(void) {
 			XMC_GPIO_SetOutputLow(EVSE_MOTOR_PHASE_PIN);
 		}
 
+		// This creates about 1 second of slow PWM run-up to reduce power draw from lock motor
 		if(system_timer_is_time_elapsed_ms(lock.last_duty_cycle_update, 1)) {
 			lock.last_duty_cycle_update = system_timer_get_ms();
 			if(lock.duty_cycle >= 0) {
@@ -76,26 +77,49 @@ void lock_tick(void) {
 			}
 		}
 
-		if(!XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN)) {
-			if(lock.state == LOCK_STATE_CLOSING) {
-				if(lock.last_input_switch_seen == 0) {
-					lock.last_input_switch_seen = system_timer_get_ms();
-				}
+		if(evse.has_lock_switch) {
+			if(!XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN)) {
+				if(lock.state == LOCK_STATE_CLOSING) {
+					if(lock.last_input_switch_seen == 0) {
+						lock.last_input_switch_seen = system_timer_get_ms();
+					}
 
-				if((lock.last_input_switch_seen != 0) && system_timer_is_time_elapsed_ms(lock.last_input_switch_seen, 500)) {
-					lock.state = LOCK_STATE_CLOSE;
-					lock.last_input_switch_seen = 0;
-					lock.duty_cycle = 6400;
+					if((lock.last_input_switch_seen != 0) && system_timer_is_time_elapsed_ms(lock.last_input_switch_seen, 500)) {
+						lock.state = LOCK_STATE_CLOSE;
+						lock.last_input_switch_seen = 0;
+						lock.lock_start = 0;
+						lock.duty_cycle = 6400;
+					}
+				}
+			} else {
+				if(lock.state == LOCK_STATE_OPENING) {
+					if(lock.last_input_switch_seen == 0) {
+						lock.last_input_switch_seen = system_timer_get_ms();
+					}
+
+					if((lock.last_input_switch_seen != 0) && system_timer_is_time_elapsed_ms(lock.last_input_switch_seen, 500)) {
+						lock.state = LOCK_STATE_OPEN;
+						lock.last_input_switch_seen = 0;
+						lock.lock_start = 0;
+						lock.duty_cycle = 6400;
+					}
 				}
 			}
 		} else {
-			if(lock.state == LOCK_STATE_OPENING) {
-				if(lock.last_input_switch_seen == 0) {
-					lock.last_input_switch_seen = system_timer_get_ms();
+			if(lock.lock_start == 0) {
+				lock.lock_start = system_timer_get_ms();
+			}
+			if(lock.state == LOCK_STATE_CLOSING) {
+				if(system_timer_is_time_elapsed_ms(lock.lock_start, 2000)) {
+					lock.state = LOCK_STATE_CLOSE;
+					lock.lock_start = 0;
+					lock.last_input_switch_seen = 0;
+					lock.duty_cycle = 6400;
 				}
-
-				if((lock.last_input_switch_seen != 0) && system_timer_is_time_elapsed_ms(lock.last_input_switch_seen, 500)) {
+			} else if(lock.state == LOCK_STATE_OPENING) {
+				if(system_timer_is_time_elapsed_ms(lock.lock_start, 2000)) {
 					lock.state = LOCK_STATE_OPEN;
+					lock.lock_start = 0;
 					lock.last_input_switch_seen = 0;
 					lock.duty_cycle = 6400;
 				}
