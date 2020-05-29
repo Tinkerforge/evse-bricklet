@@ -35,6 +35,10 @@
 
 #define SPI_FIFO_COOP_ENABLE
 
+#define MOVING_AVERAGE_MAX_LENGTH      4
+#define MOVING_AVERAGE_DEFAULT_LENGTH  4
+#define MOVING_AVERAGE_TYPE            MOVING_AVERAGE_TYPE_UINT32
+
 #include "config_custom_bootloader.h"
 
 #endif

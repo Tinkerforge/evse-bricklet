@@ -23,9 +23,11 @@
 #include "configs/config_ads1118.h"
 
 #include "bricklib2/utility/util_definitions.h"
+#include "bricklib2/utility/moving_average.h"
 #include "bricklib2/os/coop_task.h"
 #include "bricklib2/logging/logging.h"
 
+#define ADS1118_MOVING_AVERAGE_LENGTH 4
 #define ADS1118_CONFIGURE_TIMEOUT 200
 
 #include "evse.h"
@@ -100,13 +102,23 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 
 	ads1118.cp_high_voltage = (ads1118.cp_voltage - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;
 
+	uint32_t new_resistance;
 	// If the measured high voltage is near the calibration max voltage
 	// we assume that there is no resistance
 	if(ABS(ads1118.cp_high_voltage - ads1118.cp_cal_max_voltage) < 1000) {
-		ads1118.cp_pe_resistance = 0xFFFFFFFF;
+		new_resistance = 0xFFFFFFFF;
 	} else {
-		ads1118.cp_pe_resistance = 1000*ads1118.cp_high_voltage/(ads1118.cp_cal_max_voltage - ads1118.cp_high_voltage);
+		new_resistance = 1000*ads1118.cp_high_voltage/(ads1118.cp_cal_max_voltage - ads1118.cp_high_voltage);
 	}
+
+	if(ads1118.moving_average_cp_new) {
+		ads1118.moving_average_cp_new = false;
+		moving_average_init(&ads1118.moving_average_cp, new_resistance, ADS1118_MOVING_AVERAGE_LENGTH);
+	} else {
+		moving_average_handle_value(&ads1118.moving_average_cp, new_resistance);
+	}
+
+	ads1118.cp_pe_resistance = moving_average_get(&ads1118.moving_average_cp);
 }
 
 void ads1118_pp_voltage_from_miso(const uint8_t *miso) {
@@ -115,13 +127,23 @@ void ads1118_pp_voltage_from_miso(const uint8_t *miso) {
 	// 1 LSB = 125uV
 	ads1118.pp_voltage = ads1118.pp_adc_value/8;
 
+	uint32_t new_resistance;
 	// If the measured high voltage is near the calibration max voltage
 	// we assume that there is no resistance
 	if(ABS(ads1118.pp_voltage - 4095) < 150) {
-		ads1118.pp_pe_resistance = 0xFFFFFFFF;
+		new_resistance = 0xFFFFFFFF;
 	} else {
-		ads1118.pp_pe_resistance = 1000*ads1118.pp_voltage/(5000 - ads1118.pp_voltage);
+		new_resistance = 1000*ads1118.pp_voltage/(5000 - ads1118.pp_voltage);
 	}
+
+	if(ads1118.moving_average_pp_new) {
+		ads1118.moving_average_pp_new = false;
+		moving_average_init(&ads1118.moving_average_pp, new_resistance, ADS1118_MOVING_AVERAGE_LENGTH);
+	} else {
+		moving_average_handle_value(&ads1118.moving_average_pp, new_resistance);
+	}
+
+	ads1118.pp_pe_resistance = moving_average_get(&ads1118.moving_average_pp);
 }
 
 void ads1118_task_tick(void) {
@@ -140,14 +162,15 @@ void ads1118_task_tick(void) {
 	// Configure CP
 	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0), miso);
 
-	uint32_t select_count = 0;
 	uint32_t configure_time = 0;
+
+	// ADS1118 runs with 8 samples per second,
+	// so each loop takes about 250ms
 	while(true) {
 		// Wait for DRDY
 		coop_task_sleep_ms(10);
 		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
 
-		select_count = 0;
 		configure_time = system_timer_get_ms();
 		while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
 			if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
@@ -155,10 +178,6 @@ void ads1118_task_tick(void) {
 				spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0), miso);
 				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
 				configure_time = system_timer_get_ms();
-			}
-			select_count++;
-			if((select_count % 10000) == 0) {
-				logd("a sel cnt %d\n\r", select_count);
 			}
 			coop_task_yield();
 		}
@@ -175,7 +194,6 @@ void ads1118_task_tick(void) {
 		coop_task_sleep_ms(10);
 		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
 
-		select_count = 0;
 		configure_time = system_timer_get_ms();
 		while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
 			if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
@@ -183,10 +201,6 @@ void ads1118_task_tick(void) {
 				spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(1), miso);
 				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
 				configure_time = system_timer_get_ms();
-			}
-			select_count++;
-			if((select_count % 10000) == 0) {
-				logd("a sel cnt %d\n\r", select_count);
 			}
 			coop_task_yield();
 		}
@@ -199,7 +213,7 @@ void ads1118_task_tick(void) {
 			ads1118_pp_voltage_from_miso(miso);
 		}
 
-		// TODO: Read temperature
+		// TODO: Read temperature?
 
 		coop_task_yield();
 	}
@@ -211,6 +225,9 @@ void ads1118_init(void) {
 	// TODO: Calibrate min/max voltage
 	ads1118.cp_cal_max_voltage = 12280;
 	ads1118.cp_cal_min_voltage = -12435;
+
+	ads1118.moving_average_cp_new = true;
+	ads1118.moving_average_pp_new = true;
 
 	ads1118_init_spi();
 	coop_task_init(&ads1118_task, ads1118_task_tick);

@@ -96,10 +96,15 @@ uint32_t iec61851_get_max_ma(void) {
 
 // Duty cycle in pro mille (1/10 %)
 uint16_t iec61851_get_duty_cycle_for_ma(uint32_t ma) {
-	uint32_t duty_cycle = ma/60;
+	uint32_t duty_cycle;
+	if(ma <= 51000) {
+		duty_cycle = ma/60; // For 6A-51A: xA = %duty*0.6
+	} else {
+		duty_cycle = ma/250 + 640; // For 51A-80A: xA= (%duty - 64)*2.5
+	}
 
-	// TODO: Cap at specific duty cycles?
-	return BETWEEN(0, duty_cycle, 1000);
+	// The standard defines 8% as minimum and 100% as maximum
+	return BETWEEN(80, duty_cycle, 1000); 
 }
 
 void iec61851_state_a(void) {
@@ -147,7 +152,6 @@ void iec61851_tick(void) {
 		// We don't allow the jumper to be unconfigured
 		iec61851.state = IEC61851_STATE_EF;
 	} else if(button.was_pressed) {
-		// TODO: If button is pressed stay in state A until cable is removed
 		iec61851.state = IEC61851_STATE_A;
 	} else {
 		// Wait for ADC measurements to be valid

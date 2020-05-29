@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include "bricklib2/hal/spi_fifo/spi_fifo.h"
+#include "bricklib2/utility/moving_average.h"
 
 typedef struct {
     uint16_t cp_adc_value;
@@ -41,6 +42,11 @@ typedef struct {
     uint8_t  pp_invalid_counter;
 
 	SPIFifo  spi_fifo;
+
+    MovingAverage moving_average_cp;
+    MovingAverage moving_average_pp;
+    bool moving_average_cp_new;
+    bool moving_average_pp_new;
 } ADS1118;
 
 extern ADS1118 ads1118;
