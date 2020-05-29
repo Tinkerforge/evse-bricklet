@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #############################################################
-# This file was automatically generated on 2020-04-20.      #
+# This file was automatically generated on 2020-05-20.      #
 #                                                           #
 # Python Bindings Version 2.1.25                            #
 #                                                           #
@@ -18,6 +18,8 @@ try:
 except ValueError:
     from ip_connection import Device, IPConnection, Error, create_char, create_char_list, create_string, create_chunk_data
 
+GetState = namedtuple('State', ['iec61851_state', 'led_state', 'resistance', 'cp_pwm_duty_cycle', 'contactor_state', 'contactor_error', 'gpio', 'lock_state', 'jumper_configuration', 'has_lock_switch'])
+GetLowLevelStatus = namedtuple('LowLevelStatus', ['low_level_mode_enabled', 'cp_duty_cycle', 'motor_direction', 'motor_duty_cycle', 'relay_enabled', 'cp_voltage', 'pp_voltage', 'ac_input', 'gp_input', 'motor_fault', 'motor_switch'])
 GetSPITFPErrorCount = namedtuple('SPITFPErrorCount', ['error_count_ack_checksum', 'error_count_message_checksum', 'error_count_frame', 'error_count_overflow'])
 GetIdentity = namedtuple('Identity', ['uid', 'connected_uid', 'position', 'hardware_version', 'firmware_version', 'device_identifier'])
 
@@ -32,7 +34,9 @@ class BrickletEVSE(Device):
 
 
 
-    FUNCTION_TEST = 1
+    FUNCTION_GET_STATE = 1
+    FUNCTION_SET_LOW_LEVEL_OUTPUT = 2
+    FUNCTION_GET_LOW_LEVEL_STATUS = 3
     FUNCTION_GET_SPITFP_ERROR_COUNT = 234
     FUNCTION_SET_BOOTLOADER_MODE = 235
     FUNCTION_GET_BOOTLOADER_MODE = 236
@@ -46,6 +50,34 @@ class BrickletEVSE(Device):
     FUNCTION_READ_UID = 249
     FUNCTION_GET_IDENTITY = 255
 
+    IEC61851_STATE_A = 0
+    IEC61851_STATE_B = 1
+    IEC61851_STATE_C = 2
+    IEC61851_STATE_D = 3
+    IEC61851_STATE_EF = 4
+    LED_STATE_OFF = 0
+    LED_STATE_ON = 1
+    LED_STATE_BLINKING = 2
+    LED_STATE_BREATHING = 3
+    CONTACTOR_STATE_AC1_NLIVE_AC2_NLIVE = 0
+    CONTACTOR_STATE_AC1_LIVE_AC2_NLIVE = 1
+    CONTACTOR_STATE_AC1_NLIVE_AC2_LIVE = 2
+    CONTACTOR_STATE_AC1_LIVE_AC2_LIVE = 3
+    LOCK_STATE_INIT = 0
+    LOCK_STATE_OPEN = 1
+    LOCK_STATE_CLOSING = 2
+    LOCK_STATE_CLOSE = 3
+    LOCK_STATE_OPENING = 4
+    LOCK_STATE_ERROR = 5
+    JUMPER_CONFIGURATION_6A = 0
+    JUMPER_CONFIGURATION_10A = 1
+    JUMPER_CONFIGURATION_13A = 2
+    JUMPER_CONFIGURATION_16A = 3
+    JUMPER_CONFIGURATION_20A = 4
+    JUMPER_CONFIGURATION_25A = 5
+    JUMPER_CONFIGURATION_32A = 6
+    JUMPER_CONFIGURATION_SOFTWARE = 7
+    JUMPER_CONFIGURATION_UNCONFIGURED = 8
     BOOTLOADER_MODE_BOOTLOADER = 0
     BOOTLOADER_MODE_FIRMWARE = 1
     BOOTLOADER_MODE_BOOTLOADER_WAIT_FOR_REBOOT = 2
@@ -71,7 +103,9 @@ class BrickletEVSE(Device):
 
         self.api_version = (2, 0, 0)
 
-        self.response_expected[BrickletEVSE.FUNCTION_TEST] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
+        self.response_expected[BrickletEVSE.FUNCTION_GET_STATE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
+        self.response_expected[BrickletEVSE.FUNCTION_SET_LOW_LEVEL_OUTPUT] = BrickletEVSE.RESPONSE_EXPECTED_FALSE
+        self.response_expected[BrickletEVSE.FUNCTION_GET_LOW_LEVEL_STATUS] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_GET_SPITFP_ERROR_COUNT] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_SET_BOOTLOADER_MODE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_GET_BOOTLOADER_MODE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
@@ -88,15 +122,36 @@ class BrickletEVSE(Device):
 
         ipcon.add_device(self)
 
-    def test(self, data):
+    def get_state(self):
         """
-        Delete me
+        TODO
         """
         self.check_validity()
 
-        data = list(map(int, data))
+        return GetState(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_STATE, (), '', 26, 'B B 2I H B B 4! B B !'))
 
-        return self.ipcon.send_request(self, BrickletEVSE.FUNCTION_TEST, (data,), '16I', 72, '16I')
+    def set_low_level_output(self, low_level_mode_enabled, cp_duty_cycle, motor_direction, motor_duty_cycle, relay_enabled, password):
+        """
+        TODO
+        """
+        self.check_validity()
+
+        low_level_mode_enabled = bool(low_level_mode_enabled)
+        cp_duty_cycle = int(cp_duty_cycle)
+        motor_direction = bool(motor_direction)
+        motor_duty_cycle = int(motor_duty_cycle)
+        relay_enabled = int(relay_enabled)
+        password = int(password)
+
+        self.ipcon.send_request(self, BrickletEVSE.FUNCTION_SET_LOW_LEVEL_OUTPUT, (low_level_mode_enabled, cp_duty_cycle, motor_direction, motor_duty_cycle, relay_enabled, password), '! H ! H H I', 0, '')
+
+    def get_low_level_status(self):
+        """
+        TODO
+        """
+        self.check_validity()
+
+        return GetLowLevelStatus(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_LOW_LEVEL_STATUS, (), '', 25, '! H H H H h h 2! ! ! !'))
 
     def get_spitfp_error_count(self):
         """
