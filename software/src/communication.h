@@ -108,6 +108,7 @@ typedef struct {
 	uint8_t lock_state;
 	uint8_t jumper_configuration;
 	bool has_lock_switch;
+	uint32_t uptime;
 } __attribute__((__packed__)) GetState_Response;
 
 typedef struct {

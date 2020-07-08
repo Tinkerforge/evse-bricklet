@@ -60,6 +60,7 @@ BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Respons
 	response->lock_state           = lock.state;
 	response->jumper_configuration = evse.config_jumper_current;
 	response->has_lock_switch      = evse.has_lock_switch;
+	response->uptime               = system_timer_get_ms();
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
