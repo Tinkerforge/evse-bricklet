@@ -106,7 +106,7 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	// If the measured high voltage is near the calibration max voltage
 	// we assume that there is no resistance
 	if(ABS(ads1118.cp_high_voltage - ads1118.cp_cal_max_voltage) < 1000) {
-		new_resistance = 0xFFFFFFFF;
+		new_resistance = 0xFFFF;
 	} else {
 		new_resistance = 1000*ads1118.cp_high_voltage/(ads1118.cp_cal_max_voltage - ads1118.cp_high_voltage);
 	}
