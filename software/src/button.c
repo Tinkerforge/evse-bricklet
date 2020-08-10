@@ -45,7 +45,7 @@ void button_tick(void) {
 
 	if(button.last_change_time != 0 && system_timer_is_time_elapsed_ms(button.last_change_time, BUTTON_DEBOUNCE)) {
 		button.last_change_time = 0;
-		if(value) {
+		if(!value) {
 			button.state = BUTTON_STATE_RELEASED;
 		} else {
 			button.state = BUTTON_STATE_PRESSED;
