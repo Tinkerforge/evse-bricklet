@@ -64,6 +64,13 @@
 
 IEC61851 iec61851;
 
+void iec61851_set_state(IEC61851State state) {
+	if(state != iec61851.state) {
+		iec61851.state             = state;
+		iec61851.last_state_change = system_timer_get_ms();
+	}
+}
+
 uint32_t iec61851_get_ma_from_pp_resistance(void) {
 	if(ads1118.pp_pe_resistance >= 1000) {
 		return 13000; // 13A
@@ -147,12 +154,12 @@ void iec61851_state_ef(void) {
 
 void iec61851_tick(void) {
 	if(contactor_check.error != 0) {
-		iec61851.state = IEC61851_STATE_EF;
+		iec61851_set_state(IEC61851_STATE_EF);
 	} else if(evse.config_jumper_current == EVSE_CONFIG_JUMPER_UNCONFIGURED) {
 		// We don't allow the jumper to be unconfigured
-		iec61851.state = IEC61851_STATE_EF;
+		iec61851_set_state(IEC61851_STATE_EF);
 	} else if(button.was_pressed) {
-		iec61851.state = IEC61851_STATE_A;
+		iec61851_set_state(IEC61851_STATE_A);
 	} else {
 		// Wait for ADC measurements to be valid
 		if(ads1118.cp_invalid_counter > 0) {
@@ -160,15 +167,15 @@ void iec61851_tick(void) {
 		}
 
 		if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A) {
-			iec61851.state = IEC61851_STATE_A;
+			iec61851_set_state(IEC61851_STATE_A);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_B) {
-			iec61851.state = IEC61851_STATE_B;
+			iec61851_set_state(IEC61851_STATE_B);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_C) {
-			iec61851.state = IEC61851_STATE_C;
+			iec61851_set_state(IEC61851_STATE_C);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_D) {
-			iec61851.state = IEC61851_STATE_D;
+			iec61851_set_state(IEC61851_STATE_D);
 		} else {
-			iec61851.state = IEC61851_STATE_EF;
+			iec61851_set_state(IEC61851_STATE_EF);
 		}
 	}
 

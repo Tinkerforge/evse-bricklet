@@ -22,6 +22,8 @@
 #ifndef IEC61851_H
 #define IEC61851_H
 
+#include <stdint.h>
+
 typedef enum {
     IEC61851_STATE_A,  // Standby
     IEC61851_STATE_B,  // Vehicle Detected
@@ -33,6 +35,7 @@ typedef enum {
 
 typedef struct {
     IEC61851State state;
+    uint32_t last_state_change;
 } IEC61851;
 
 extern IEC61851 iec61851;
