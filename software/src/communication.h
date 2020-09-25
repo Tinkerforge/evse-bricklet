@@ -91,6 +91,8 @@ void communication_init(void);
 #define FID_GET_HARDWARE_CONFIGURATION 2
 #define FID_GET_LOW_LEVEL_STATE 3
 #define FID_SET_LOW_LEVEL_OUTPUT 4
+#define FID_CALIBRATE_ADC 5
+#define FID_GET_ADC_CALIBRATION 6
 
 
 typedef struct {
@@ -144,12 +146,35 @@ typedef struct {
 	uint32_t password;
 } __attribute__((__packed__)) SetLowLevelOutput;
 
+typedef struct {
+	TFPMessageHeader header;
+	uint32_t password;
+} __attribute__((__packed__)) CalibrateADC;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool calibration_started;
+} __attribute__((__packed__)) CalibrateADC_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetADCCalibration;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool calibration_ongoing;
+	uint16_t min_adc_value;
+	uint16_t max_adc_value;
+} __attribute__((__packed__)) GetADCCalibration_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
 BootloaderHandleMessageResponse get_hardware_configuration(const GetHardwareConfiguration *data, GetHardwareConfiguration_Response *response);
 BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data, GetLowLevelState_Response *response);
 BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data);
+BootloaderHandleMessageResponse calibrate_adc(const CalibrateADC *data, CalibrateADC_Response *response);
+BootloaderHandleMessageResponse get_adc_calibration(const GetADCCalibration *data, GetADCCalibration_Response *response);
 
 // Callbacks
 

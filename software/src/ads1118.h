@@ -34,6 +34,8 @@ typedef struct {
     uint32_t cp_pe_resistance;
     int16_t  cp_cal_min_voltage;
     int16_t  cp_cal_max_voltage;
+    uint16_t cp_cal_min_adc_value;
+    uint16_t cp_cal_max_adc_value;
     uint8_t  cp_invalid_counter;
 
     uint16_t pp_adc_value;

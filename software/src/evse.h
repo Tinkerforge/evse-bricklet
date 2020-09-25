@@ -52,6 +52,8 @@ typedef struct {
 	bool has_lock_switch;
 
 	uint16_t config_jumper_current_software;
+
+	bool calibrate;
 } EVSE;
 
 extern EVSE evse;

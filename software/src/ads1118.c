@@ -98,6 +98,7 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	// 6574 LSB  => -12V
 	// 31643 LSB =>  12V
 	
+	// TODO: Use calibration values here instead of fixed 6574 and 31643
 	ads1118.cp_voltage = SCALE(ads1118.cp_adc_value, 6574, 31643, -12000, 12000);
 
 	ads1118.cp_high_voltage = (ads1118.cp_voltage - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;

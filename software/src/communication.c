@@ -44,6 +44,8 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_HARDWARE_CONFIGURATION: return get_hardware_configuration(message, response);
 		case FID_GET_LOW_LEVEL_STATE: return get_low_level_state(message, response);
 		case FID_SET_LOW_LEVEL_OUTPUT: return set_low_level_output(message);
+		case FID_CALIBRATE_ADC: return calibrate_adc(message, response);
+		case FID_GET_ADC_CALIBRATION: return get_adc_calibration(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -122,6 +124,28 @@ BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *da
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
+
+BootloaderHandleMessageResponse calibrate_adc(const CalibrateADC *data, CalibrateADC_Response *response) {
+	response->header.length = sizeof(CalibrateADC_Response);
+	if(iec61851.state == EVSE_IEC61851_STATE_A) {
+		evse.calibrate                = true;
+		response->calibration_started = true;
+	} else {
+		response->calibration_started = false;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse get_adc_calibration(const GetADCCalibration *data, GetADCCalibration_Response *response) {
+	response->header.length       = sizeof(GetADCCalibration_Response);
+	response->calibration_ongoing = evse.calibrate;
+	response->min_adc_value       = ads1118.cp_cal_min_adc_value;
+	response->max_adc_value       = ads1118.cp_cal_max_adc_value;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
 
 void communication_tick(void) {
 //	communication_callback_tick();

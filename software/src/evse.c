@@ -201,6 +201,7 @@ void evse_init(void) {
 	ccu4_pwm_init(EVSE_MOTOR_ENABLE_PIN, EVSE_MOTOR_ENABLE_SLICE_NUMBER, EVSE_MOTOR_PWM_PERIOD-1); // 10 kHz
 	ccu4_pwm_set_duty_cycle(EVSE_MOTOR_ENABLE_SLICE_NUMBER, EVSE_MOTOR_PWM_PERIOD);
 
+	evse.calibrate = false;
 	evse.startup_time = system_timer_get_ms();
 	evse.config_jumper_current_software = 6000; // default software configuration is 6A
 
@@ -245,7 +246,15 @@ void evse_tick_debug(void) {
 }
 
 void evse_tick(void) {
-	if(evse.low_level_mode_enabled) {
+	if(evse.calibrate) {
+		// TODO:
+		// 1. change PWM to 100% duty cycle
+		// 2. integrate over a few seconds (+12V)
+		// 3. change PWM to 0% duty cycle
+		// 4. integrate over a few seconds (-12V)
+		// 5. calculate 0 value, max, min assuming 125 uV per ADC lsb
+		// 6. save calibration
+	} else if(evse.low_level_mode_enabled) {
 		// If low level mode is enabled,
 		// everything is handled through the low level API.
 		evse_tick_low_level();
