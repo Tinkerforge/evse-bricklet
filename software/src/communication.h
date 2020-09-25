@@ -88,8 +88,9 @@ void communication_init(void);
 
 // Function and callback IDs and structs
 #define FID_GET_STATE 1
-#define FID_SET_LOW_LEVEL_OUTPUT 2
-#define FID_GET_LOW_LEVEL_STATUS 3
+#define FID_GET_HARDWARE_CONFIGURATION 2
+#define FID_GET_LOW_LEVEL_STATE 3
+#define FID_SET_LOW_LEVEL_OUTPUT 4
 
 
 typedef struct {
@@ -99,17 +100,39 @@ typedef struct {
 typedef struct {
 	TFPMessageHeader header;
 	uint8_t iec61851_state;
-	uint8_t led_state;
-	uint32_t resistance[2];
-	uint16_t cp_pwm_duty_cycle;
 	uint8_t contactor_state;
 	uint8_t contactor_error;
-	uint8_t gpio[1];
 	uint8_t lock_state;
-	uint8_t jumper_configuration;
-	bool has_lock_switch;
+	uint32_t time_since_state_change;
 	uint32_t uptime;
 } __attribute__((__packed__)) GetState_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetHardwareConfiguration;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t jumper_configuration;
+	bool has_lock_switch;
+} __attribute__((__packed__)) GetHardwareConfiguration_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetLowLevelState;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool low_level_mode_enabled;
+	uint8_t led_state;
+	uint16_t cp_pwm_duty_cycle;
+	uint16_t adc_values[2];
+	int16_t voltages[3];
+	uint32_t resistances[2];
+	uint8_t gpio[1];
+	uint16_t motor_direction;
+	uint16_t motor_duty_cycle;
+} __attribute__((__packed__)) GetLowLevelState_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -121,30 +144,12 @@ typedef struct {
 	uint32_t password;
 } __attribute__((__packed__)) SetLowLevelOutput;
 
-typedef struct {
-	TFPMessageHeader header;
-} __attribute__((__packed__)) GetLowLevelStatus;
-
-typedef struct {
-	TFPMessageHeader header;
-	bool low_level_mode_enabled;
-	uint16_t cp_duty_cycle;
-	uint16_t motor_direction;
-	uint16_t motor_duty_cycle;
-	uint16_t relay_enabled;
-	int16_t cp_voltage;
-	int16_t pp_voltage;
-	uint8_t ac_input[1];
-	bool gp_input;
-	bool motor_fault;
-	bool motor_switch;
-} __attribute__((__packed__)) GetLowLevelStatus_Response;
-
 
 // Function prototypes
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
+BootloaderHandleMessageResponse get_hardware_configuration(const GetHardwareConfiguration *data, GetHardwareConfiguration_Response *response);
+BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data, GetLowLevelState_Response *response);
 BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data);
-BootloaderHandleMessageResponse get_low_level_status(const GetLowLevelStatus *data, GetLowLevelStatus_Response *response);
 
 // Callbacks
 

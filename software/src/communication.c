@@ -41,27 +41,49 @@
 BootloaderHandleMessageResponse handle_message(const void *message, void *response) {
 	switch(tfp_get_fid_from_message(message)) {
 		case FID_GET_STATE: return get_state(message, response);
+		case FID_GET_HARDWARE_CONFIGURATION: return get_hardware_configuration(message, response);
+		case FID_GET_LOW_LEVEL_STATE: return get_low_level_state(message, response);
 		case FID_SET_LOW_LEVEL_OUTPUT: return set_low_level_output(message);
-		case FID_GET_LOW_LEVEL_STATUS: return get_low_level_status(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
 
+
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response) {
-	response->header.length        = sizeof(GetState_Response);
-	response->iec61851_state       = iec61851.state;
-	response->led_state            = led.state;
-	response->resistance[0]        = ads1118.cp_pe_resistance;
-	response->resistance[1]        = ads1118.pp_pe_resistance;
-	response->cp_pwm_duty_cycle    = (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
-	response->contactor_state      = contactor_check.state;
-	response->contactor_error      = contactor_check.error;
-	response->gpio[0]              = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN) | (XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN) << 1) | (XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN) << 2) | (XMC_GPIO_GetInput(EVSE_RELAY_PIN) << 3);
-	response->lock_state           = lock.state;
+	response->header.length           = sizeof(GetState_Response);
+	response->iec61851_state          = iec61851.state;
+	response->contactor_state         = contactor_check.state;
+	response->contactor_error         = contactor_check.error;
+	response->lock_state              = lock.state;
+	response->uptime                  = system_timer_get_ms();
+	response->time_since_state_change = response->uptime - iec61851.last_state_change;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse get_hardware_configuration(const GetHardwareConfiguration *data, GetHardwareConfiguration_Response *response) {
+	response->header.length        = sizeof(GetHardwareConfiguration_Response);
 	response->jumper_configuration = evse.config_jumper_current;
 	response->has_lock_switch      = evse.has_lock_switch;
-	response->uptime               = system_timer_get_ms();
 
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data, GetLowLevelState_Response *response) {
+	response->header.length          = sizeof(GetLowLevelState_Response);
+	response->low_level_mode_enabled = evse.low_level_mode_enabled;
+	response->led_state              = led.state;
+	response->cp_pwm_duty_cycle      = (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
+	response->adc_values[0]          = ads1118.cp_adc_value;
+	response->adc_values[1]          = ads1118.pp_adc_value;
+	response->voltages[0]            = ads1118.cp_voltage;
+	response->voltages[1]            = ads1118.pp_voltage;
+	response->voltages[2]            = ads1118.cp_high_voltage;
+	response->resistances[0]         = ads1118.cp_pe_resistance;
+	response->resistances[1]         = ads1118.pp_pe_resistance;
+	response->gpio[0]                = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN) | (XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN) << 1) | (XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN) << 2) | (XMC_GPIO_GetInput(EVSE_RELAY_PIN) << 3) | (XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN) << 4);
+	response->motor_direction        = evse.low_level_motor_direction;
+	response->motor_duty_cycle       = evse.low_level_motor_duty_cycle;
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
@@ -100,25 +122,6 @@ BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *da
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
-
-BootloaderHandleMessageResponse get_low_level_status(const GetLowLevelStatus *data, GetLowLevelStatus_Response *response) {
-	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
-	response->header.length          = sizeof(GetLowLevelStatus_Response);
-	response->low_level_mode_enabled = evse.low_level_mode_enabled;
-	response->cp_duty_cycle          = evse.low_level_cp_duty_cycle;
-	response->motor_direction        = evse.low_level_motor_direction;
-	response->motor_duty_cycle       = evse.low_level_motor_duty_cycle;
-	response->relay_enabled          = evse.low_level_relay_enabled;
-	response->cp_voltage             = ads1118.cp_voltage;
-	response->pp_voltage             = ads1118.pp_voltage;
-	response->ac_input[0]            = XMC_GPIO_GetInput(CONTACTOR_CHECK_AC1_PIN) | (XMC_GPIO_GetInput(CONTACTOR_CHECK_AC2_PIN) << 1);
-	response->gp_input               = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN);
-	response->motor_fault            = XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN);
-	response->motor_switch           = XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN);
-
-	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
-}
-
 
 void communication_tick(void) {
 //	communication_callback_tick();
