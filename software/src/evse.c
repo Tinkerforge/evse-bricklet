@@ -103,11 +103,6 @@ void evse_init_lock_switch(void) {
 
 // Check pin header for max current
 void evse_init_jumper(void) {
-	// TODO: REMOVE ME!!!!!  vvvvvvv
-	evse.config_jumper_current = EVSE_CONFIG_JUMPER_CURRENT_16A;
-	return;
-	// TODO: REMOVE ME!!!!!  ^^^^^^^
-
 	const XMC_GPIO_CONFIG_t pin_config_input_tristate = {
 		.mode             = XMC_GPIO_MODE_INPUT_TRISTATE,
 		.input_hysteresis = XMC_GPIO_INPUT_HYSTERESIS_STANDARD
