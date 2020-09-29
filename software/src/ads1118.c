@@ -91,6 +91,10 @@ uint8_t *ads1118_get_config_for_mosi(const uint8_t channel) {
 void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	ads1118.cp_adc_value = (miso[1] | (miso[0] << 8));
 
+	// adc_sum and adc_sum_count is used during calibration and otherwise ignored
+    ads1118.cp_adc_sum += ads1118.cp_adc_value;
+    ads1118.cp_adc_sum_count++;
+
 	// 0.8217V => -12V
 	// 3.9554V =>  12V
 	// 1 LSB = 125uV
@@ -98,7 +102,6 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	// 6574 LSB  => -12V
 	// 31643 LSB =>  12V
 	
-	// TODO: Use calibration values here instead of fixed 6574 and 31643
 	ads1118.cp_voltage = SCALE(ads1118.cp_adc_value, 6574, 31643, -12000, 12000);
 
 	ads1118.cp_high_voltage = (ads1118.cp_voltage - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;
@@ -222,10 +225,6 @@ void ads1118_task_tick(void) {
 
 void ads1118_init(void) {
 	memset(&ads1118, 0, sizeof(ADS1118));
-
-	// TODO: Calibrate min/max voltage
-	ads1118.cp_cal_max_voltage = 12280;
-	ads1118.cp_cal_min_voltage = -12435;
 
 	ads1118.moving_average_cp_new = true;
 	ads1118.moving_average_pp_new = true;

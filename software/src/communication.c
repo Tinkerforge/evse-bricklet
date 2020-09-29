@@ -127,8 +127,8 @@ BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *da
 
 BootloaderHandleMessageResponse calibrate_adc(const CalibrateADC *data, CalibrateADC_Response *response) {
 	response->header.length = sizeof(CalibrateADC_Response);
-	if(iec61851.state == EVSE_IEC61851_STATE_A) {
-		evse.calibrate                = true;
+	if((iec61851.state == EVSE_IEC61851_STATE_A) && (data->password == 0x0BB03224)) {
+		evse.calibration_state        = 1;
 		response->calibration_started = true;
 	} else {
 		response->calibration_started = false;
@@ -139,9 +139,9 @@ BootloaderHandleMessageResponse calibrate_adc(const CalibrateADC *data, Calibrat
 
 BootloaderHandleMessageResponse get_adc_calibration(const GetADCCalibration *data, GetADCCalibration_Response *response) {
 	response->header.length       = sizeof(GetADCCalibration_Response);
-	response->calibration_ongoing = evse.calibrate;
-	response->min_adc_value       = ads1118.cp_cal_min_adc_value;
-	response->max_adc_value       = ads1118.cp_cal_max_adc_value;
+	response->calibration_ongoing = evse.calibration_state != 0;
+	response->min_value           = ads1118.cp_cal_min_voltage;
+	response->max_value           = ads1118.cp_cal_max_voltage;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

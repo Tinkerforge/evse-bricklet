@@ -26,6 +26,7 @@
 #include "bricklib2/hal/system_timer/system_timer.h"
 #include "bricklib2/logging/logging.h"
 #include "bricklib2/utility/util_definitions.h"
+#include "bricklib2/bootloader/bootloader.h"
 
 #include "ads1118.h"
 #include "iec61851.h"
@@ -175,6 +176,34 @@ void evse_init_jumper(void) {
 	}
 }
 
+void evse_load_calibration(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
+	bootloader_read_eeprom_page(EVSE_CALIBRATION_PAGE, page);
+
+	// The magic number is not where it is supposed to be.
+	// This is either our first startup or something went wrong.
+	// We initialize the calibration data with sane default values and start a calibration.
+	if(page[0] != EVSE_CALIBRATION_MAGIC) {
+		ads1118.cp_cal_max_voltage = 12280;
+		ads1118.cp_cal_min_voltage = -12435;
+
+		evse.calibration_state = 1;
+		return;
+	}
+	ads1118.cp_cal_min_voltage = page[EVSE_CALIBRATION_MIN_POS] - INT16_MAX;
+	ads1118.cp_cal_max_voltage = page[EVSE_CALIBRATION_MAX_POS] - INT16_MAX;
+}
+
+void evse_save_calibration(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
+
+	page[EVSE_CALIBRATION_MAGIC_POS] = EVSE_CALIBRATION_MAGIC;
+	page[EVSE_CALIBRATION_MIN_POS]   = ads1118.cp_cal_min_voltage + INT16_MAX;
+	page[EVSE_CALIBRATION_MAX_POS]   = ads1118.cp_cal_max_voltage + INT16_MAX;
+
+	bootloader_write_eeprom_page(EVSE_CALIBRATION_PAGE, page);
+}
+
 void evse_init(void) {
 	const XMC_GPIO_CONFIG_t pin_config_output = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
@@ -201,12 +230,14 @@ void evse_init(void) {
 	ccu4_pwm_init(EVSE_MOTOR_ENABLE_PIN, EVSE_MOTOR_ENABLE_SLICE_NUMBER, EVSE_MOTOR_PWM_PERIOD-1); // 10 kHz
 	ccu4_pwm_set_duty_cycle(EVSE_MOTOR_ENABLE_SLICE_NUMBER, EVSE_MOTOR_PWM_PERIOD);
 
-	evse.calibrate = false;
-	evse.startup_time = system_timer_get_ms();
+	evse.calibration_state = 0;
 	evse.config_jumper_current_software = 6000; // default software configuration is 6A
 
+	evse_load_calibration();
 	evse_init_jumper();
 	evse_init_lock_switch();
+
+	evse.startup_time = system_timer_get_ms();
 }
 
 void evse_tick_low_level(void) {
@@ -245,26 +276,97 @@ void evse_tick_debug(void) {
 #endif
 }
 
+void evse_calibration(void) {
+	switch(evse.calibration_state) {
+		case 1: { // Change duty cycle to 0%
+			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 0*64);
+			evse.calibration_time = system_timer_get_ms();
+			evse.calibration_state++;
+			break;
+		}
+
+		case 2: { // Wait 500ms
+			if(system_timer_is_time_elapsed_ms(evse.calibration_time, 500)) {
+				evse.calibration_time = system_timer_get_ms();
+				evse.calibration_state++;
+
+				ads1118.cp_adc_sum = 0;
+				ads1118.cp_adc_sum_count = 0;
+			}
+			break;
+		}
+
+		case 3: { // Integrate over a few seconds (-12V)
+			if(system_timer_is_time_elapsed_ms(evse.calibration_time, 5000)) {
+				evse.calibration_adc_min = ads1118.cp_adc_sum/ads1118.cp_adc_sum_count;
+				evse.calibration_state++;
+			}
+			break;
+		}
+
+		case 4: { // Change duty cycle to 100%
+			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 1000*64);
+			evse.calibration_time = system_timer_get_ms();
+			evse.calibration_state++;
+			break;
+		}
+
+		case 5: { // Wait 500ms
+			if(system_timer_is_time_elapsed_ms(evse.calibration_time, 500)) {
+				evse.calibration_time = system_timer_get_ms();
+				evse.calibration_state++;
+
+				ads1118.cp_adc_sum = 0;
+				ads1118.cp_adc_sum_count = 0;
+			}
+			break;
+		}
+
+		case 6: { // Integrate over a few seconds (+12V)
+			if(system_timer_is_time_elapsed_ms(evse.calibration_time, 5000)) {
+				evse.calibration_adc_max = ads1118.cp_adc_sum/ads1118.cp_adc_sum_count;
+				evse.calibration_state++;
+			}
+			break;
+		}
+
+		case 7: { // Calculate min/max assuming 125 uV per ADC lsb and save calibration
+			// 1 LSB = 125uV
+			// 0.8217V => -12V
+			// 3.9554V =>  12V
+			// 1 LSB = 125uV
+			// ===>
+			// 6574 LSB  => -12V
+			// 31643 LSB =>  12V
+	
+			ads1118.cp_cal_min_voltage = SCALE(evse.calibration_adc_min, 6574, 31643, -12000, 12000);
+			ads1118.cp_cal_max_voltage = SCALE(evse.calibration_adc_max, 6574, 31643, -12000, 12000);
+
+			evse_save_calibration();
+		} // fall-through
+		default: { 
+			evse.calibration_state = 0;
+			break;
+		}
+	}
+}
+
 void evse_tick(void) {
-	if(evse.calibrate) {
-		// TODO:
-		// 1. change PWM to 100% duty cycle
-		// 2. integrate over a few seconds (+12V)
-		// 3. change PWM to 0% duty cycle
-		// 4. integrate over a few seconds (-12V)
-		// 5. calculate 0 value, max, min assuming 125 uV per ADC lsb
-		// 6. save calibration
+	// Wait one second on first startup
+	if(evse.startup_time != 0 && !system_timer_is_time_elapsed_ms(evse.startup_time, 1000)) {
+		return;
+	}
+	evse.startup_time = 0;
+
+	if(evse.calibration_state != 0) {
+		evse_calibration();
 	} else if(evse.low_level_mode_enabled) {
 		// If low level mode is enabled,
 		// everything is handled through the low level API.
 		evse_tick_low_level();
 	} else {
-		if(evse.startup_time == 0 || system_timer_is_time_elapsed_ms(evse.startup_time, 1000)) {
-			evse.startup_time = 0;
-
-			// Otherwise we implement the EVSE according to IEC 61851.
-			iec61851_tick();
-		}
+		// Otherwise we implement the EVSE according to IEC 61851.
+		iec61851_tick();
 	}
 
 	evse_tick_debug();

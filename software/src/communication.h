@@ -163,8 +163,8 @@ typedef struct {
 typedef struct {
 	TFPMessageHeader header;
 	bool calibration_ongoing;
-	uint16_t min_adc_value;
-	uint16_t max_adc_value;
+	int16_t min_value;
+	int16_t max_value;
 } __attribute__((__packed__)) GetADCCalibration_Response;
 
 

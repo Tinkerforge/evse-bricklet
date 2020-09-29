@@ -28,15 +28,22 @@
 #define EVSE_CP_PWM_PERIOD    64000 // 1kHz
 #define EVSE_MOTOR_PWM_PERIOD 6400  // 10kHz
 
-#define EVSE_CONFIG_JUMPER_CURRENT_6A 0
-#define EVSE_CONFIG_JUMPER_CURRENT_10A 1
-#define EVSE_CONFIG_JUMPER_CURRENT_13A 2
-#define EVSE_CONFIG_JUMPER_CURRENT_16A 3
-#define EVSE_CONFIG_JUMPER_CURRENT_20A 4
-#define EVSE_CONFIG_JUMPER_CURRENT_25A 5
-#define EVSE_CONFIG_JUMPER_CURRENT_32A 6
-#define EVSE_CONFIG_JUMPER_SOFTWARE 7
+#define EVSE_CONFIG_JUMPER_CURRENT_6A   0
+#define EVSE_CONFIG_JUMPER_CURRENT_10A  1
+#define EVSE_CONFIG_JUMPER_CURRENT_13A  2
+#define EVSE_CONFIG_JUMPER_CURRENT_16A  3
+#define EVSE_CONFIG_JUMPER_CURRENT_20A  4
+#define EVSE_CONFIG_JUMPER_CURRENT_25A  5
+#define EVSE_CONFIG_JUMPER_CURRENT_32A  6
+#define EVSE_CONFIG_JUMPER_SOFTWARE     7
 #define EVSE_CONFIG_JUMPER_UNCONFIGURED 8
+
+#define EVSE_CALIBRATION_PAGE           1
+#define EVSE_CALIBRATION_MAGIC_POS      0
+#define EVSE_CALIBRATION_MIN_POS        1
+#define EVSE_CALIBRATION_MAX_POS        2
+
+#define EVSE_CALIBRATION_MAGIC          0x12345678
 
 typedef struct {
 	bool     low_level_mode_enabled;
@@ -53,7 +60,11 @@ typedef struct {
 
 	uint16_t config_jumper_current_software;
 
-	bool calibrate;
+	uint8_t calibration_state;
+	uint32_t calibration_time;
+
+	int32_t calibration_adc_min;
+	int32_t calibration_adc_max;
 } EVSE;
 
 extern EVSE evse;
