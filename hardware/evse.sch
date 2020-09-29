@@ -2651,5 +2651,9 @@ MPS
 Text Notes 3050 1000 0    39   ~ 0
 LSS
 Text Notes 6600 8100 0    39   ~ 0
-Connect INPUT-GP with OUTPUT-GP to \ndetect fixed cable/jack without lock during boot
+Connect INPUT-MOTOR-SWITCH with OUTPUT-GP with Diode to \ndetect fixed cable/jack without lock during boot
+Text Notes 12900 1700 0    39   ~ 0
+Vcpadc = (41*Vcp+750)/314, VEE@5.0V
+Text Notes 12900 1800 0    39   ~ 0
+Vcpadc = Vcp-300k/100k*Vcpadc+300k/82k*5V-300k/82k*Vcpadc
 $EndSCHEMATC
