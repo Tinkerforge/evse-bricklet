@@ -22,6 +22,8 @@
 #include "ads1118.h"
 #include "configs/config_ads1118.h"
 
+#include <stdlib.h>
+
 #include "bricklib2/utility/util_definitions.h"
 #include "bricklib2/utility/moving_average.h"
 #include "bricklib2/os/coop_task.h"
@@ -31,6 +33,8 @@
 #define ADS1118_CONFIGURE_TIMEOUT 200
 
 #include "evse.h"
+#include "iec61851.h"
+#include "button.h"
 
 CoopTask ads1118_task;
 ADS1118 ads1118;
@@ -88,8 +92,75 @@ uint8_t *ads1118_get_config_for_mosi(const uint8_t channel) {
 	return mosi;
 }
 
+void ads1118_cp_adc_avg_queue_add(uint16_t value) {
+	ads1118.cp_adc_avg_queue[ads1118.cp_adc_avg_queue_pos] = value;
+	ads1118.cp_adc_avg_queue_pos = (ads1118.cp_adc_avg_queue_pos + 1) % ADS1118_CP_ADC_AVG_NUM;
+}
+
+int ads1118_sort_compare( const void* a, const void* b) {
+   uint16_t int_a = *((uint16_t*)a);
+   uint16_t int_b = *((uint16_t*)b);
+
+   return (int_a > int_b) - (int_a < int_b);
+}
+
+uint16_t ads1118_cp_adc_avg_queue_get(void) {
+	uint16_t tmp[ADS1118_MOVING_AVERAGE_LENGTH];
+	memcpy(tmp, ads1118.cp_adc_avg_queue, sizeof(uint16_t)*ADS1118_MOVING_AVERAGE_LENGTH);
+
+	// Sort the queue
+	qsort(tmp, ADS1118_MOVING_AVERAGE_LENGTH, sizeof(uint16_t), ads1118_sort_compare);
+
+	// Return the value a 1/3 above the median
+	return tmp[ADS1118_MOVING_AVERAGE_LENGTH*2/3];
+}
+
+void ads1118_cp_handle_continuous_calibration(const uint16_t adc_value) {
+	// We don't do the calibration if the box is not enabled
+	if(button.was_pressed) {
+		return;
+	}
+
+	// If the adc value is below 11V, we ignore it.
+	// We don't accept a voltage this small as max cp voltage
+	const int16_t voltage = SCALE(adc_value, 6574, 31643, -12000, 12000);
+	if(voltage < 11000) {
+		return;
+	}
+
+	// Do continuous calibration in IEC61851 State A
+	// and 500ms between state change and continuous calibration.
+	if((iec61851.state == IEC61851_STATE_A) && system_timer_is_time_elapsed_ms(iec61851.last_state_change, 500)) {
+		if(ads1118.moving_average_cp_adc_12v_new) {
+			ads1118.moving_average_cp_adc_12v_new = false;
+			moving_average_init(&ads1118.moving_average_cp_adc_12v, adc_value, ADS1118_MOVING_AVERAGE_LENGTH);
+			for(uint8_t i = 0; i < ADS1118_CP_ADC_AVG_NUM; i++) {
+				ads1118.cp_adc_avg_queue[i] = adc_value;
+			}
+		} else {
+			moving_average_handle_value(&ads1118.moving_average_cp_adc_12v, adc_value);
+		}
+
+		// Take moving average
+		int32_t adc_max_value_avg  = moving_average_get(&ads1118.moving_average_cp_adc_12v);
+
+		// and put it into queue.
+		ads1118_cp_adc_avg_queue_add(adc_max_value_avg);
+
+		// From the queue we use the value a bit above the median.
+		adc_max_value_avg = ads1118_cp_adc_avg_queue_get();
+
+		// The voltage in the queue is the continuous calibrated max voltage,
+		ads1118.cp_cal_max_voltage = SCALE(adc_max_value_avg, 6574, 31643, -12000, 12000);
+
+		// for the min voltage we use a fixed difference that is calibrated on intial flashing
+		ads1118.cp_cal_min_voltage = -ads1118.cp_cal_diff_voltage - ads1118.cp_cal_max_voltage;
+	}
+}
+
 void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	ads1118.cp_adc_value = (miso[1] | (miso[0] << 8));
+	ads1118_cp_handle_continuous_calibration(ads1118.cp_adc_value);
 
 	// adc_sum and adc_sum_count is used during calibration and otherwise ignored
     ads1118.cp_adc_sum += ads1118.cp_adc_value;
@@ -226,8 +297,10 @@ void ads1118_task_tick(void) {
 void ads1118_init(void) {
 	memset(&ads1118, 0, sizeof(ADS1118));
 
-	ads1118.moving_average_cp_new = true;
-	ads1118.moving_average_pp_new = true;
+	ads1118.cp_cal_diff_voltage           = 100;
+	ads1118.moving_average_cp_adc_12v_new = true;
+	ads1118.moving_average_cp_new         = true;
+	ads1118.moving_average_pp_new         = true;
 
 	ads1118_init_spi();
 	coop_task_init(&ads1118_task, ads1118_task_tick);

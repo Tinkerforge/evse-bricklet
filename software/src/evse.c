@@ -233,7 +233,7 @@ void evse_init(void) {
 	evse.calibration_state = 0;
 	evse.config_jumper_current_software = 6000; // default software configuration is 6A
 
-	evse_load_calibration();
+//	evse_load_calibration();
 	evse_init_jumper();
 	evse_init_lock_switch();
 
@@ -358,9 +358,9 @@ void evse_tick(void) {
 	}
 	evse.startup_time = 0;
 
-	if(evse.calibration_state != 0) {
+	/*if(evse.calibration_state != 0) {
 		evse_calibration();
-	} else if(evse.low_level_mode_enabled) {
+	} else */ if(evse.low_level_mode_enabled) {
 		// If low level mode is enabled,
 		// everything is handled through the low level API.
 		evse_tick_low_level();

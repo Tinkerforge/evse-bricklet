@@ -29,6 +29,7 @@
 #include "bricklib2/hal/ccu4_pwm/ccu4_pwm.h"
 #include "configs/config_evse.h"
 #include "ads1118.h"
+#include "iec61851.h"
 #include "lock.h"
 #include "evse.h"
 #include "contactor_check.h"
@@ -190,5 +191,6 @@ void iec61851_tick(void) {
 
 void iec61851_init(void) {
 	memset(&iec61851, 0, sizeof(IEC61851));
+	iec61851.last_state_change = system_timer_get_ms();
 }
 

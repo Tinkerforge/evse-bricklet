@@ -27,6 +27,8 @@
 #include "bricklib2/hal/spi_fifo/spi_fifo.h"
 #include "bricklib2/utility/moving_average.h"
 
+#define ADS1118_CP_ADC_AVG_NUM 128
+
 typedef struct {
     uint16_t cp_adc_value;
     uint32_t cp_adc_sum;
@@ -36,6 +38,7 @@ typedef struct {
     uint32_t cp_pe_resistance;
     int16_t  cp_cal_min_voltage;
     int16_t  cp_cal_max_voltage;
+    int16_t  cp_cal_diff_voltage;
     uint8_t  cp_invalid_counter;
 
     uint16_t pp_adc_value;
@@ -45,8 +48,15 @@ typedef struct {
 
 	SPIFifo  spi_fifo;
 
+    uint16_t cp_adc_avg_queue[ADS1118_CP_ADC_AVG_NUM];
+    uint8_t cp_adc_avg_queue_pos;
+
+    bool moving_average_cp_adc_12v_active;
+
+    MovingAverage moving_average_cp_adc_12v;
     MovingAverage moving_average_cp;
     MovingAverage moving_average_pp;
+    bool moving_average_cp_adc_12v_new;
     bool moving_average_cp_new;
     bool moving_average_pp_new;
 } ADS1118;
