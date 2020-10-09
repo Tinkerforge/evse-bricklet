@@ -43,9 +43,10 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_STATE: return get_state(message, response);
 		case FID_GET_HARDWARE_CONFIGURATION: return get_hardware_configuration(message, response);
 		case FID_GET_LOW_LEVEL_STATE: return get_low_level_state(message, response);
+		case FID_SET_MAX_CHARGING_CURRENT: return set_max_charging_current(message);
+		case FID_GET_MAX_CHARGING_CURRENT: return get_max_charging_current(message);
 		case FID_SET_LOW_LEVEL_OUTPUT: return set_low_level_output(message);
-		case FID_CALIBRATE_ADC: return calibrate_adc(message, response);
-		case FID_GET_ADC_CALIBRATION: return get_adc_calibration(message, response);
+		case FID_CALIBRATE: return calibrate(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -78,7 +79,7 @@ BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data
 	response->cp_pwm_duty_cycle      = (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
 	response->adc_values[0]          = ads1118.cp_adc_value;
 	response->adc_values[1]          = ads1118.pp_adc_value;
-	response->voltages[0]            = ads1118.cp_voltage;
+	response->voltages[0]            = ads1118.cp_voltage_calibrated;
 	response->voltages[1]            = ads1118.pp_voltage;
 	response->voltages[2]            = ads1118.cp_high_voltage;
 	response->resistances[0]         = ads1118.cp_pe_resistance;
@@ -87,6 +88,16 @@ BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data
 	response->motor_direction        = evse.low_level_motor_direction;
 	response->motor_duty_cycle       = evse.low_level_motor_duty_cycle;
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_max_charging_current(const SetMaxChargingCurrent *data) {
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCurrent *data) {
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
 BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data) {
@@ -125,23 +136,39 @@ BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *da
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse calibrate_adc(const CalibrateADC *data, CalibrateADC_Response *response) {
-	response->header.length = sizeof(CalibrateADC_Response);
-	if((iec61851.state == EVSE_IEC61851_STATE_A) && (data->password == 0x0BB03224)) {
-		evse.calibration_state        = 1;
-		response->calibration_started = true;
-	} else {
-		response->calibration_started = false;
+BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Response *response) {
+	response->header.length = sizeof(Calibrate_Response);
+	logd("calibrate (iec61851.state %d): %d %x -> %d\n\r", iec61851.state, data->state, data->password, data->value);
+	if(((ads1118.cp_pe_resistance != 0xFFFF) && (evse.calibration_state == 0)) || (data->password != (0x0BB03200 + data->state))) {
+		response->success = false;
+		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 	}
 
-	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
-}
+	logd("calibration_state: %d\n\r", evse.calibration_state);
+    if((evse.calibration_state == 0) && (data->state == 1)) {
+	    evse.calibration_state = 1;
+		ads1118.cp_cal_mul = data->value;        // multiply by calibrated voltage
+		ads1118.cp_cal_div = ads1118.cp_voltage; // divide by uncalibrated voltage
 
-BootloaderHandleMessageResponse get_adc_calibration(const GetADCCalibration *data, GetADCCalibration_Response *response) {
-	response->header.length       = sizeof(GetADCCalibration_Response);
-	response->calibration_ongoing = evse.calibration_state != 0;
-	response->min_value           = ads1118.cp_cal_min_voltage;
-	response->max_value           = ads1118.cp_cal_max_voltage;
+		// Set duty cycle to 0%
+		ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 0*64);
+		response->success = true;
+		logd("cal mul %d, div %d\n\r", ads1118.cp_cal_mul, ads1118.cp_cal_div);
+	} else if((evse.calibration_state == 1) && (data->state == 2)) {
+	    evse.calibration_state = 0;
+		ads1118.cp_cal_diff_voltage = data->value;
+
+		// Set duty cycle backto 100%
+		ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 1000*64);
+		response->success = true;
+
+		evse_save_calibration();
+
+	// Currently only two states/values are calibrated
+	// Other values may be calibrated in the future
+	} else { 
+		response->success = false;
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

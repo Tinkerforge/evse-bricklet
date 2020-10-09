@@ -40,8 +40,9 @@
 
 #define EVSE_CALIBRATION_PAGE           1
 #define EVSE_CALIBRATION_MAGIC_POS      0
-#define EVSE_CALIBRATION_MIN_POS        1
-#define EVSE_CALIBRATION_MAX_POS        2
+#define EVSE_CALIBRATION_MUL_POS        1
+#define EVSE_CALIBRATION_DIV_POS        2
+#define EVSE_CALIBRATION_DIFF_POS       3
 
 #define EVSE_CALIBRATION_MAGIC          0x12345678
 
@@ -68,6 +69,8 @@ typedef struct {
 } EVSE;
 
 extern EVSE evse;
+
+void evse_save_calibration(void);
 void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor);
 void evse_init(void);
 void evse_tick(void);

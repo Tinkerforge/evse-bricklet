@@ -105,14 +105,14 @@ int ads1118_sort_compare( const void* a, const void* b) {
 }
 
 uint16_t ads1118_cp_adc_avg_queue_get(void) {
-	uint16_t tmp[ADS1118_MOVING_AVERAGE_LENGTH];
-	memcpy(tmp, ads1118.cp_adc_avg_queue, sizeof(uint16_t)*ADS1118_MOVING_AVERAGE_LENGTH);
+	uint16_t tmp[ADS1118_CP_ADC_AVG_NUM];
+	memcpy(tmp, ads1118.cp_adc_avg_queue, sizeof(uint16_t)*ADS1118_CP_ADC_AVG_NUM);
 
 	// Sort the queue
-	qsort(tmp, ADS1118_MOVING_AVERAGE_LENGTH, sizeof(uint16_t), ads1118_sort_compare);
+	qsort(tmp, ADS1118_CP_ADC_AVG_NUM, sizeof(uint16_t), ads1118_sort_compare);
 
 	// Return the value a 1/3 above the median
-	return tmp[ADS1118_MOVING_AVERAGE_LENGTH*2/3];
+	return tmp[ADS1118_CP_ADC_AVG_NUM*2/3];
 }
 
 void ads1118_cp_handle_continuous_calibration(const uint16_t adc_value) {
@@ -150,11 +150,14 @@ void ads1118_cp_handle_continuous_calibration(const uint16_t adc_value) {
 		// From the queue we use the value a bit above the median.
 		adc_max_value_avg = ads1118_cp_adc_avg_queue_get();
 
-		// The voltage in the queue is the continuous calibrated max voltage,
-		ads1118.cp_cal_max_voltage = SCALE(adc_max_value_avg, 6574, 31643, -12000, 12000);
+		// The voltage in the queue is the continuous calibrated max voltage (ADC value),
+		int16_t voltage = SCALE(adc_max_value_avg, 6574, 31643, -12000, 12000);
 
-		// for the min voltage we use a fixed difference that is calibrated on intial flashing
-		ads1118.cp_cal_min_voltage = -ads1118.cp_cal_diff_voltage - ads1118.cp_cal_max_voltage;
+		// Apply additional ADC calibration
+		ads1118.cp_cal_max_voltage = voltage * ads1118.cp_cal_mul / ads1118.cp_cal_div;
+
+		// For the min voltage we use a fixed difference that is calibrated on intial flashing
+		ads1118.cp_cal_min_voltage = -ads1118.cp_cal_max_voltage + ads1118.cp_cal_diff_voltage;
 	}
 }
 
@@ -174,8 +177,9 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	// 31643 LSB =>  12V
 	
 	ads1118.cp_voltage = SCALE(ads1118.cp_adc_value, 6574, 31643, -12000, 12000);
+	ads1118.cp_voltage_calibrated = ads1118.cp_voltage * ads1118.cp_cal_mul / ads1118.cp_cal_div;
 
-	ads1118.cp_high_voltage = (ads1118.cp_voltage - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;
+	ads1118.cp_high_voltage = (ads1118.cp_voltage_calibrated - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;
 
 	uint32_t new_resistance;
 	// If the measured high voltage is near the calibration max voltage
@@ -295,9 +299,18 @@ void ads1118_task_tick(void) {
 }
 
 void ads1118_init(void) {
+	// Temporarily save calibration
+	int16_t tmp_diff = ads1118.cp_cal_diff_voltage;
+	int16_t tmp_div  = ads1118.cp_cal_div;
+	int16_t tmp_mul  = ads1118.cp_cal_mul;
+
 	memset(&ads1118, 0, sizeof(ADS1118));
 
-	ads1118.cp_cal_diff_voltage           = 100;
+	ads1118.cp_cal_diff_voltage           = tmp_diff;
+	ads1118.cp_cal_div                    = tmp_div;
+	ads1118.cp_cal_mul                    = tmp_mul;
+	ads1118.cp_cal_max_voltage            = 12200;  // Set some sane default values for min/max voltages.
+	ads1118.cp_cal_min_voltage            = -12250; // These will be overwritten by continuous calibration later on.
 	ads1118.moving_average_cp_adc_12v_new = true;
 	ads1118.moving_average_cp_new         = true;
 	ads1118.moving_average_pp_new         = true;

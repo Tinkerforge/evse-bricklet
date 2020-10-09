@@ -90,9 +90,10 @@ void communication_init(void);
 #define FID_GET_STATE 1
 #define FID_GET_HARDWARE_CONFIGURATION 2
 #define FID_GET_LOW_LEVEL_STATE 3
-#define FID_SET_LOW_LEVEL_OUTPUT 4
-#define FID_CALIBRATE_ADC 5
-#define FID_GET_ADC_CALIBRATION 6
+#define FID_SET_MAX_CHARGING_CURRENT 4
+#define FID_GET_MAX_CHARGING_CURRENT 5
+#define FID_SET_LOW_LEVEL_OUTPUT 6
+#define FID_CALIBRATE 7
 
 
 typedef struct {
@@ -138,6 +139,18 @@ typedef struct {
 
 typedef struct {
 	TFPMessageHeader header;
+	uint16_t max_current;
+} __attribute__((__packed__)) SetMaxChargingCurrent;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint16_t max_current_configured;
+	uint16_t max_current_incoming_cable;
+	uint16_t max_current_outgoing_cable;
+} __attribute__((__packed__)) GetMaxChargingCurrent;
+
+typedef struct {
+	TFPMessageHeader header;
 	bool low_level_mode_enabled;
 	uint16_t cp_duty_cycle;
 	bool motor_direction;
@@ -148,33 +161,25 @@ typedef struct {
 
 typedef struct {
 	TFPMessageHeader header;
+	uint8_t state;
 	uint32_t password;
-} __attribute__((__packed__)) CalibrateADC;
+	int32_t value;
+} __attribute__((__packed__)) Calibrate;
 
 typedef struct {
 	TFPMessageHeader header;
-	bool calibration_started;
-} __attribute__((__packed__)) CalibrateADC_Response;
-
-typedef struct {
-	TFPMessageHeader header;
-} __attribute__((__packed__)) GetADCCalibration;
-
-typedef struct {
-	TFPMessageHeader header;
-	bool calibration_ongoing;
-	int16_t min_value;
-	int16_t max_value;
-} __attribute__((__packed__)) GetADCCalibration_Response;
+	bool success;
+} __attribute__((__packed__)) Calibrate_Response;
 
 
 // Function prototypes
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
 BootloaderHandleMessageResponse get_hardware_configuration(const GetHardwareConfiguration *data, GetHardwareConfiguration_Response *response);
 BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data, GetLowLevelState_Response *response);
+BootloaderHandleMessageResponse set_max_charging_current(const SetMaxChargingCurrent *data);
+BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCurrent *data);
 BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data);
-BootloaderHandleMessageResponse calibrate_adc(const CalibrateADC *data, CalibrateADC_Response *response);
-BootloaderHandleMessageResponse get_adc_calibration(const GetADCCalibration *data, GetADCCalibration_Response *response);
+BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Response *response);
 
 // Callbacks
 

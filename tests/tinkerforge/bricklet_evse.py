@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #############################################################
-# This file was automatically generated on 2020-06-02.      #
+# This file was automatically generated on 2020-10-09.      #
 #                                                           #
-# Python Bindings Version 2.1.25                            #
+# Python Bindings Version 2.1.26                            #
 #                                                           #
 # If you have a bugfix for this file and want to commit it, #
 # please fix the bug in the generator. You can find a link  #
@@ -18,8 +18,9 @@ try:
 except ValueError:
     from ip_connection import Device, IPConnection, Error, create_char, create_char_list, create_string, create_chunk_data
 
-GetState = namedtuple('State', ['iec61851_state', 'led_state', 'resistance', 'cp_pwm_duty_cycle', 'contactor_state', 'contactor_error', 'gpio', 'lock_state', 'jumper_configuration', 'has_lock_switch', 'uptime'])
-GetLowLevelStatus = namedtuple('LowLevelStatus', ['low_level_mode_enabled', 'cp_duty_cycle', 'motor_direction', 'motor_duty_cycle', 'relay_enabled', 'cp_voltage', 'pp_voltage', 'ac_input', 'gp_input', 'motor_fault', 'motor_switch'])
+GetState = namedtuple('State', ['iec61851_state', 'contactor_state', 'contactor_error', 'lock_state', 'time_since_state_change', 'uptime'])
+GetHardwareConfiguration = namedtuple('HardwareConfiguration', ['jumper_configuration', 'has_lock_switch'])
+GetLowLevelState = namedtuple('LowLevelState', ['low_level_mode_enabled', 'led_state', 'cp_pwm_duty_cycle', 'adc_values', 'voltages', 'resistances', 'gpio', 'motor_direction', 'motor_duty_cycle'])
 GetSPITFPErrorCount = namedtuple('SPITFPErrorCount', ['error_count_ack_checksum', 'error_count_message_checksum', 'error_count_frame', 'error_count_overflow'])
 GetIdentity = namedtuple('Identity', ['uid', 'connected_uid', 'position', 'hardware_version', 'firmware_version', 'device_identifier'])
 
@@ -35,8 +36,12 @@ class BrickletEVSE(Device):
 
 
     FUNCTION_GET_STATE = 1
-    FUNCTION_SET_LOW_LEVEL_OUTPUT = 2
-    FUNCTION_GET_LOW_LEVEL_STATUS = 3
+    FUNCTION_GET_HARDWARE_CONFIGURATION = 2
+    FUNCTION_GET_LOW_LEVEL_STATE = 3
+    FUNCTION_SET_MAX_CHARGING_CURRENT = 4
+    FUNCTION_GET_MAX_CHARGING_CURRENT = 5
+    FUNCTION_SET_LOW_LEVEL_OUTPUT = 6
+    FUNCTION_CALIBRATE = 7
     FUNCTION_GET_SPITFP_ERROR_COUNT = 234
     FUNCTION_SET_BOOTLOADER_MODE = 235
     FUNCTION_GET_BOOTLOADER_MODE = 236
@@ -104,8 +109,12 @@ class BrickletEVSE(Device):
         self.api_version = (2, 0, 0)
 
         self.response_expected[BrickletEVSE.FUNCTION_GET_STATE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
+        self.response_expected[BrickletEVSE.FUNCTION_GET_HARDWARE_CONFIGURATION] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
+        self.response_expected[BrickletEVSE.FUNCTION_GET_LOW_LEVEL_STATE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
+        self.response_expected[BrickletEVSE.FUNCTION_SET_MAX_CHARGING_CURRENT] = BrickletEVSE.RESPONSE_EXPECTED_FALSE
+        self.response_expected[BrickletEVSE.FUNCTION_GET_MAX_CHARGING_CURRENT] = BrickletEVSE.RESPONSE_EXPECTED_FALSE
         self.response_expected[BrickletEVSE.FUNCTION_SET_LOW_LEVEL_OUTPUT] = BrickletEVSE.RESPONSE_EXPECTED_FALSE
-        self.response_expected[BrickletEVSE.FUNCTION_GET_LOW_LEVEL_STATUS] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
+        self.response_expected[BrickletEVSE.FUNCTION_CALIBRATE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_GET_SPITFP_ERROR_COUNT] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_SET_BOOTLOADER_MODE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_GET_BOOTLOADER_MODE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
@@ -128,7 +137,48 @@ class BrickletEVSE(Device):
         """
         self.check_validity()
 
-        return GetState(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_STATE, (), '', 30, 'B B 2I H B B 4! B B ! I'))
+        return GetState(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_STATE, (), '', 20, 'B B B B I I'))
+
+    def get_hardware_configuration(self):
+        """
+        TODO
+        """
+        self.check_validity()
+
+        return GetHardwareConfiguration(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_HARDWARE_CONFIGURATION, (), '', 10, 'B !'))
+
+    def get_low_level_state(self):
+        """
+        TODO
+        """
+        self.check_validity()
+
+        return GetLowLevelState(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_LOW_LEVEL_STATE, (), '', 34, '! B H 2H 3h 2I 5! ! H'))
+
+    def set_max_charging_current(self, max_current):
+        """
+        TODO
+        """
+        self.check_validity()
+
+        max_current = int(max_current)
+
+        self.ipcon.send_request(self, BrickletEVSE.FUNCTION_SET_MAX_CHARGING_CURRENT, (max_current,), 'H', 0, '')
+
+    def get_max_charging_current(self, max_current_configured, max_current_incoming_cable, max_current_outgoing_cable):
+        """
+        * Max Current Configured -> set with :func:`Set Max Charging Current`
+        * Max Current Incoming Cable -> set with jumper on EVSE
+        * Max Current Outgoing Cable -> set with resistor between PP/PE (if fixed cable is used)
+        TODO
+        """
+        self.check_validity()
+
+        max_current_configured = int(max_current_configured)
+        max_current_incoming_cable = int(max_current_incoming_cable)
+        max_current_outgoing_cable = int(max_current_outgoing_cable)
+
+        self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_MAX_CHARGING_CURRENT, (max_current_configured, max_current_incoming_cable, max_current_outgoing_cable), 'H H H', 0, '')
 
     def set_low_level_output(self, low_level_mode_enabled, cp_duty_cycle, motor_direction, motor_duty_cycle, relay_enabled, password):
         """
@@ -145,13 +195,17 @@ class BrickletEVSE(Device):
 
         self.ipcon.send_request(self, BrickletEVSE.FUNCTION_SET_LOW_LEVEL_OUTPUT, (low_level_mode_enabled, cp_duty_cycle, motor_direction, motor_duty_cycle, relay_enabled, password), '! H ! H H I', 0, '')
 
-    def get_low_level_status(self):
+    def calibrate(self, state, password, value):
         """
         TODO
         """
         self.check_validity()
 
-        return GetLowLevelStatus(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_LOW_LEVEL_STATUS, (), '', 25, '! H H H H h h 2! ! ! !'))
+        state = int(state)
+        password = int(password)
+        value = int(value)
+
+        return self.ipcon.send_request(self, BrickletEVSE.FUNCTION_CALIBRATE, (state, password, value), 'B I i', 9, '!')
 
     def get_spitfp_error_count(self):
         """
@@ -309,8 +363,7 @@ class BrickletEVSE(Device):
         device identifier.
 
         The position can be 'a', 'b', 'c', 'd', 'e', 'f', 'g' or 'h' (Bricklet Port).
-        The Raspberry Pi HAT (Zero) Brick is always at position 'i' and the Bricklet
-        connected to an :ref:`Isolator Bricklet <isolator_bricklet>` is always as
+        A Bricklet connected to an :ref:`Isolator Bricklet <isolator_bricklet>` is always as
         position 'z'.
 
         The device identifier numbers can be found :ref:`here <device_identifier>`.

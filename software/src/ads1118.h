@@ -27,18 +27,21 @@
 #include "bricklib2/hal/spi_fifo/spi_fifo.h"
 #include "bricklib2/utility/moving_average.h"
 
-#define ADS1118_CP_ADC_AVG_NUM 128
+#define ADS1118_CP_ADC_AVG_NUM 32
 
 typedef struct {
     uint16_t cp_adc_value;
     uint32_t cp_adc_sum;
     uint16_t cp_adc_sum_count;
     int16_t  cp_voltage;
+    int16_t  cp_voltage_calibrated;
     int16_t  cp_high_voltage;
     uint32_t cp_pe_resistance;
-    int16_t  cp_cal_min_voltage;
-    int16_t  cp_cal_max_voltage;
-    int16_t  cp_cal_diff_voltage;
+    int16_t  cp_cal_max_voltage;  // Done by EVSE on-the-fly through continuous calibration
+    int16_t  cp_cal_min_voltage;  // Done by EVSE on-the-fly through continuous calibration
+    int16_t  cp_cal_diff_voltage; // Calibration done during flash/test through API
+    int16_t  cp_cal_mul;          // Calibration done during flash/test through API
+    int16_t  cp_cal_div;          // Calibration done during flash/test through API
     uint8_t  cp_invalid_counter;
 
     uint16_t pp_adc_value;
