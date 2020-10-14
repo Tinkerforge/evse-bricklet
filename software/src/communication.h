@@ -92,8 +92,7 @@ void communication_init(void);
 #define FID_GET_LOW_LEVEL_STATE 3
 #define FID_SET_MAX_CHARGING_CURRENT 4
 #define FID_GET_MAX_CHARGING_CURRENT 5
-#define FID_SET_LOW_LEVEL_OUTPUT 6
-#define FID_CALIBRATE 7
+#define FID_CALIBRATE 6
 
 
 typedef struct {
@@ -105,6 +104,7 @@ typedef struct {
 	uint8_t iec61851_state;
 	uint8_t contactor_state;
 	uint8_t contactor_error;
+	uint16_t allowed_charging_current;
 	uint8_t lock_state;
 	uint32_t time_since_state_change;
 	uint32_t uptime;
@@ -144,20 +144,14 @@ typedef struct {
 
 typedef struct {
 	TFPMessageHeader header;
-	uint16_t max_current_configured;
-	uint16_t max_current_incoming_cable;
-	uint16_t max_current_outgoing_cable;
 } __attribute__((__packed__)) GetMaxChargingCurrent;
 
 typedef struct {
 	TFPMessageHeader header;
-	bool low_level_mode_enabled;
-	uint16_t cp_duty_cycle;
-	bool motor_direction;
-	uint16_t motor_duty_cycle;
-	uint16_t relay_enabled;
-	uint32_t password;
-} __attribute__((__packed__)) SetLowLevelOutput;
+	uint16_t max_current_configured;
+	uint16_t max_current_incoming_cable;
+	uint16_t max_current_outgoing_cable;
+} __attribute__((__packed__)) GetMaxChargingCurrent_Response;
 
 typedef struct {
 	TFPMessageHeader header;
@@ -177,8 +171,7 @@ BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Respons
 BootloaderHandleMessageResponse get_hardware_configuration(const GetHardwareConfiguration *data, GetHardwareConfiguration_Response *response);
 BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data, GetLowLevelState_Response *response);
 BootloaderHandleMessageResponse set_max_charging_current(const SetMaxChargingCurrent *data);
-BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCurrent *data);
-BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data);
+BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCurrent *data, GetMaxChargingCurrent_Response *response);
 BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Response *response);
 
 // Callbacks

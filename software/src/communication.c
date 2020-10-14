@@ -26,6 +26,7 @@
 #include "bricklib2/hal/system_timer/system_timer.h"
 #include "bricklib2/hal/ccu4_pwm/ccu4_pwm.h"
 #include "bricklib2/logging/logging.h"
+#include "bricklib2/utility/util_definitions.h"
 
 #include "configs/config_evse.h"
 #include "configs/config_contactor_check.h"
@@ -44,8 +45,7 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_HARDWARE_CONFIGURATION: return get_hardware_configuration(message, response);
 		case FID_GET_LOW_LEVEL_STATE: return get_low_level_state(message, response);
 		case FID_SET_MAX_CHARGING_CURRENT: return set_max_charging_current(message);
-		case FID_GET_MAX_CHARGING_CURRENT: return get_max_charging_current(message);
-		case FID_SET_LOW_LEVEL_OUTPUT: return set_low_level_output(message);
+		case FID_GET_MAX_CHARGING_CURRENT: return get_max_charging_current(message, response);
 		case FID_CALIBRATE: return calibrate(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
@@ -53,13 +53,14 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 
 
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response) {
-	response->header.length           = sizeof(GetState_Response);
-	response->iec61851_state          = iec61851.state;
-	response->contactor_state         = contactor_check.state;
-	response->contactor_error         = contactor_check.error;
-	response->lock_state              = lock.state;
-	response->uptime                  = system_timer_get_ms();
-	response->time_since_state_change = response->uptime - iec61851.last_state_change;
+	response->header.length            = sizeof(GetState_Response);
+	response->iec61851_state           = iec61851.state;
+	response->contactor_state          = contactor_check.state;
+	response->contactor_error          = contactor_check.error;
+	response->allowed_charging_current = iec61851_get_max_ma();
+	response->lock_state               = lock.state;
+	response->uptime                   = system_timer_get_ms();
+	response->time_since_state_change  = response->uptime - iec61851.last_state_change;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -87,53 +88,24 @@ BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data
 	response->gpio[0]                = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN) | (XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN) << 1) | (XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN) << 2) | (XMC_GPIO_GetInput(EVSE_RELAY_PIN) << 3) | (XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN) << 4);
 	response->motor_direction        = evse.low_level_motor_direction;
 	response->motor_duty_cycle       = evse.low_level_motor_duty_cycle;
+
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
 BootloaderHandleMessageResponse set_max_charging_current(const SetMaxChargingCurrent *data) {
+	// Use a minimum of 6A and a maximum of 32A.
+	evse.max_current_configured = BETWEEN(6000, data->max_current, 32000);
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
-BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCurrent *data) {
+BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCurrent *data, GetMaxChargingCurrent_Response *response) {
+	response->header.length = sizeof(GetMaxChargingCurrent_Response);
+	response->max_current_configured     = evse.max_current_configured;
+	response->max_current_outgoing_cable = iec61851_get_ma_from_pp_resistance();
+	response->max_current_incoming_cable = iec61851_get_ma_from_jumper();
 
-	return HANDLE_MESSAGE_RESPONSE_EMPTY;
-}
-
-BootloaderHandleMessageResponse set_low_level_output(const SetLowLevelOutput *data) {
-	return HANDLE_MESSAGE_RESPONSE_EMPTY;
-
-	logd("set_ll pw: %x\n\r", data->password);
-
-	if(data->password != 0x4223B00B) {
-		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
-	}
-	
-	if(evse.low_level_cp_duty_cycle > 1000) {
-		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
-	}
-
-	if(evse.low_level_motor_duty_cycle > 1000) {
-		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
-	}
-
-	evse.low_level_mode_enabled     = data->low_level_mode_enabled;
-	evse.low_level_cp_duty_cycle    = data->cp_duty_cycle;
-	evse.low_level_motor_direction  = data->motor_direction;
-	evse.low_level_motor_duty_cycle = data->motor_duty_cycle;
-	evse.low_level_relay_enabled    = data->relay_enabled;
-	evse.low_level_relay_monoflop   = system_timer_get_ms();
-
-	logd("set_ll en: %d, cp\%: %u, motor dir: %d, motor\%: %u, relay: %d, mono: %u\n\r", 
-	     evse.low_level_mode_enabled,
-	     evse.low_level_cp_duty_cycle,
-	     evse.low_level_motor_direction,
-	     evse.low_level_motor_duty_cycle,
-	     evse.low_level_relay_enabled,
-	     evse.low_level_relay_monoflop
-	);
-
-	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
 BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Response *response) {
