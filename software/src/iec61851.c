@@ -99,7 +99,7 @@ uint32_t iec61851_get_ma_from_jumper(void) {
 }
 
 uint32_t iec61851_get_max_ma(void) {
-	return MIN(iec61851_get_ma_from_pp_resistance(), iec61851_get_ma_from_jumper());
+	return MIN(evse.max_current_configured, MIN(iec61851_get_ma_from_pp_resistance(), iec61851_get_ma_from_jumper()));
 }
 
 // Duty cycle in pro mille (1/10 %)
