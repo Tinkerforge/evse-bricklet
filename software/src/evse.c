@@ -61,7 +61,7 @@ void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor) {
 
 	if(((bool)XMC_GPIO_GetInput(EVSE_RELAY_PIN)) != contactor) {
 		// Ignore all ADC measurements for a while if the contactor is
-		// switched on or off, to be sure that the resulting EMI spile does
+		// switched on or off, to be sure that the resulting EMI spike does
 		// not give us a wrong measurement.
 		ads1118.cp_invalid_counter = MAX(4, ads1118.cp_invalid_counter);
 		ads1118.pp_invalid_counter = MAX(4, ads1118.pp_invalid_counter);
