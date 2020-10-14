@@ -243,6 +243,7 @@ void evse_init(void) {
 	evse.startup_time = system_timer_get_ms();
 }
 
+#if EVSE_LOW_LEVEL_MODE
 void evse_tick_low_level(void) {
 	ccu4_pwm_set_duty_cycle(EVSE_MOTOR_ENABLE_SLICE_NUMBER, 6400 - evse.low_level_motor_duty_cycle*64/10);
 
@@ -259,6 +260,7 @@ void evse_tick_low_level(void) {
 
 	evse_set_output(evse.low_level_cp_duty_cycle, evse.low_level_relay_enabled);
 }
+#endif
 
 void evse_tick_debug(void) {
 #if LOGGING_LEVEL != LOGGING_NONE
@@ -290,11 +292,16 @@ void evse_tick(void) {
 		// Nothing here
 		// calibration is done externally through API.
 		// We don't change anything while calibration is running
-	} else if(evse.low_level_mode_enabled) {
+	} 
+#ifdef EVSE_LOW_LEVEL_MODE
+	else if(evse.low_level_mode_enabled) {
+
 		// If low level mode is enabled,
 		// everything is handled through the low level API.
 		evse_tick_low_level();
-	} else {
+	} 
+#endif
+	else {
 		// Otherwise we implement the EVSE according to IEC 61851.
 		iec61851_tick();
 	}
