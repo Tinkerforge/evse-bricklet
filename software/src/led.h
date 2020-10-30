@@ -23,6 +23,13 @@
 #define LED_H
 
 #include <stdint.h>
+#include <stdbool.h>
+
+#define LED_BLINK_DURATION_ON   250
+#define LED_BLINK_DURATION_OFF  250
+#define LED_BLINK_DURATION_WAIT 2000
+
+#define LED_STANDBY_TIME (1000*60*15) // Standby after 15 minutes
 
 typedef enum {
     LED_STATE_OFF,
@@ -34,11 +41,18 @@ typedef enum {
 typedef struct {
     LEDState state;
 
-    uint32_t blink_duration;
+    uint32_t on_time;
+
+    uint32_t blink_num;
+    uint32_t blink_count;
+	bool blink_on;
+	uint32_t blink_last_time;
 } LED;
 
 extern LED led;
 
+void led_set_on(void);
+void led_set_blinking(const uint8_t num);
 void led_init();
 void led_tick();
 

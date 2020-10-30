@@ -68,9 +68,31 @@ const uint16_t led_cie1931[256] = {
 #define LED_ON  LED_MIN_DUTY_CYLCE
 #define LED_OFF LED_MAX_DUTY_CYCLE
 
+void led_set_blinking(const uint8_t num) {
+	// Check if we are already blinking with the correct blink amount
+	if((led.state == LED_STATE_BLINKING) && (led.blink_num == num)) {
+		return;
+	}
+
+	led.state           = LED_STATE_BLINKING;
+	led.blink_num       = num;
+	led.blink_count     = num;
+	led.blink_on        = false;
+	led.blink_last_time = system_timer_get_ms();
+
+	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+}
+
+// Called whenever there is activity
+// LED will go to standby after 15 minutes again
+void led_set_on(void) {
+	led.on_time = system_timer_get_ms();
+	led.state = LED_STATE_ON;
+	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+}
+
 void led_init(void) {
 	memset(&led, 0, sizeof(LED));
-	led.blink_duration = 250;
 
 	ccu4_pwm_init(EVSE_LED_PIN, EVSE_LED_SLICE_NUMBER, LED_MAX_DUTY_CYCLE-1); // ~9.7 kHz
 	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
@@ -81,21 +103,33 @@ void led_tick_status_off(void) {
 }
 
 void led_tick_status_on(void) {
-	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+	if(system_timer_is_time_elapsed_ms(led.on_time, LED_STANDBY_TIME)) {
+		led.state = LED_STATE_OFF;
+		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+	} else {
+		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+	}
 }
 
 void led_tick_status_blinking(void) {
-	static bool on = true;
-	static uint32_t last_blink_time = 0;
-
-	if(system_timer_is_time_elapsed_ms(last_blink_time, led.blink_duration)) {
-		last_blink_time = system_timer_get_ms();
-		if(on) {
-			ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
-		} else {
-			ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+	if(led.blink_count >= led.blink_num) {
+		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_WAIT)) {
+			led.blink_last_time = system_timer_get_ms();
+			led.blink_count = 0;
 		}
-		on = !on;
+	} else if(led.blink_on) {
+		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_ON)) {
+			led.blink_last_time = system_timer_get_ms();
+			ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+			led.blink_on = false;
+			led.blink_count++;
+		}
+	} else {
+		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_OFF)) {
+			led.blink_last_time = system_timer_get_ms();
+			ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+			led.blink_on = true;
+		}
 	}
 }
 
@@ -104,7 +138,7 @@ void led_tick_status_breathing(void) {
 	static int16_t last_breath_index = 0;
 	static bool up = true;
 
-	if(!system_timer_is_time_elapsed_ms(last_breath_time, 3)) {
+	if(!system_timer_is_time_elapsed_ms(last_breath_time, 5)) {
 		return;
 	}
 	last_breath_time = system_timer_get_ms();
@@ -122,7 +156,7 @@ void led_tick_status_breathing(void) {
 		up = false;
 	}
 
-	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, led_cie1931[last_breath_index]/10);
+	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, 6553 - led_cie1931[last_breath_index]/10);
 }
 
 void led_tick(void) {

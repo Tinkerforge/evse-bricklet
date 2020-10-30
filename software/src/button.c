@@ -54,8 +54,11 @@ void button_tick(void) {
 	}
 }
 
-void button_reset(void) {
+bool button_reset(void) {
 	if(button.state != BUTTON_STATE_PRESSED) {
 		button.was_pressed = false;
+		return true;
 	}
+
+	return false;
 }

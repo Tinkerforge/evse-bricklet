@@ -68,6 +68,7 @@ typedef struct {
 	int32_t calibration_adc_max;
 
 	uint16_t max_current_configured;
+	bool calibration_error;
 } EVSE;
 
 extern EVSE evse;

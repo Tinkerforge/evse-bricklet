@@ -42,6 +42,6 @@ extern Button button;
 
 void button_init(void);
 void button_tick(void);
-void button_reset(void);
+bool button_reset(void);
 
 #endif

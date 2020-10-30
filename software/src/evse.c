@@ -284,7 +284,15 @@ void evse_tick_debug(void) {
 
 void evse_tick(void) {
 	// Wait one second on first startup
-	if(evse.startup_time != 0 && !system_timer_is_time_elapsed_ms(evse.startup_time, 1000)) {
+	if(evse.startup_time != 0 && !system_timer_is_time_elapsed_ms(evse.startup_time, 5000)) {
+		// If we see less then 11V during startup
+		// we go into calibration error.
+		if(evse.calibration_error || ((ads1118.cp_voltage_calibrated != 0) && (ads1118.cp_voltage_calibrated < 11000))) {
+			evse.calibration_error = true;
+			led_set_blinking(3);
+		} else {
+			led_set_on();
+		}
 		return;
 	}
 	evse.startup_time = 0;
@@ -293,7 +301,7 @@ void evse_tick(void) {
 		// Nothing here
 		// calibration is done externally through API.
 		// We don't change anything while calibration is running
-	} 
+	}
 #ifdef EVSE_LOW_LEVEL_MODE
 	else if(evse.low_level_mode_enabled) {
 
@@ -302,7 +310,11 @@ void evse_tick(void) {
 		evse_tick_low_level();
 	} 
 #endif
-	else {
+	else if((evse.config_jumper_current == EVSE_CONFIG_JUMPER_SOFTWARE) || (evse.config_jumper_current == EVSE_CONFIG_JUMPER_UNCONFIGURED)) {
+		led_set_blinking(2);
+	} else if(evse.calibration_error) {
+		led_set_blinking(3);
+	} else {
 		// Otherwise we implement the EVSE according to IEC 61851.
 		iec61851_tick();
 	}

@@ -67,6 +67,11 @@ IEC61851 iec61851;
 
 void iec61851_set_state(IEC61851State state) {
 	if(state != iec61851.state) {
+		if((state == IEC61851_STATE_A ) || (state == IEC61851_STATE_B)) {
+			// Turn LED on with timer for standby if we have a state change to state A or B
+			led_set_on();
+		}
+
 		iec61851.state             = state;
 		iec61851.last_state_change = system_timer_get_ms();
 	}
@@ -118,10 +123,11 @@ uint16_t iec61851_get_duty_cycle_for_ma(uint32_t ma) {
 void iec61851_state_a(void) {
 	// Apply +12V to CP, disable contactor
 	evse_set_output(1000, false);
-	led.state = LED_STATE_OFF;
 
 	if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A) {
-		button_reset();
+		if(button_reset()) {
+			led_set_on();
+		}
 	}
 }
 
@@ -129,7 +135,6 @@ void iec61851_state_b(void) {
 	// Apply 1kHz square wave to CP with appropriate duty cycle, disable contactor
 	uint32_t ma = iec61851_get_max_ma();
 	evse_set_output(iec61851_get_duty_cycle_for_ma(ma), false);
-	led.state = LED_STATE_ON;
 }
 
 void iec61851_state_c(void) {
@@ -143,24 +148,24 @@ void iec61851_state_d(void) {
 	// State D is not supported
 	// Apply +12V to CP, disable contactor
 	evse_set_output(1000, false);
-	led.state = LED_STATE_BLINKING;
 }
 
 void iec61851_state_ef(void) {
 	// In case of error apply +12V to CP, disable contactor
 	evse_set_output(1000, false);
-	led.state = LED_STATE_BLINKING;
-	// TODO: Add different blinking states for different errors
 }
 
 void iec61851_tick(void) {
 	if(contactor_check.error != 0) {
+		led_set_blinking(4);
 		iec61851_set_state(IEC61851_STATE_EF);
 	} else if(evse.config_jumper_current == EVSE_CONFIG_JUMPER_UNCONFIGURED) {
 		// We don't allow the jumper to be unconfigured
+		led_set_blinking(2);
 		iec61851_set_state(IEC61851_STATE_EF);
 	} else if(button.was_pressed) {
 		iec61851_set_state(IEC61851_STATE_A);
+		led.state = LED_STATE_OFF;
 	} else {
 		// Wait for ADC measurements to be valid
 		if(ads1118.cp_invalid_counter > 0) {
@@ -174,8 +179,10 @@ void iec61851_tick(void) {
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_C) {
 			iec61851_set_state(IEC61851_STATE_C);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_D) {
+			led_set_blinking(5);
 			iec61851_set_state(IEC61851_STATE_D);
 		} else {
+			led_set_blinking(5);
 			iec61851_set_state(IEC61851_STATE_EF);
 		}
 	}
