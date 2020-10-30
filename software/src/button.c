@@ -25,6 +25,8 @@
 
 #include "bricklib2/hal/system_timer/system_timer.h"
 
+#include "led.h"
+
 #include <string.h>
 
 #define BUTTON_DEBOUNCE 100 // ms
@@ -47,6 +49,9 @@ void button_tick(void) {
 		button.last_change_time = 0;
 		if(!value) {
 			button.state = BUTTON_STATE_RELEASED;
+
+			// We always see a button release as a state change that turns the LED on (until standby)
+			led_set_on();
 		} else {
 			button.state = BUTTON_STATE_PRESSED;
 			button.was_pressed = true;
@@ -55,7 +60,7 @@ void button_tick(void) {
 }
 
 bool button_reset(void) {
-	if(button.state != BUTTON_STATE_PRESSED) {
+	if((button.state != BUTTON_STATE_PRESSED) && button.was_pressed) {
 		button.was_pressed = false;
 		return true;
 	}

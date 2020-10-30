@@ -125,6 +125,8 @@ void iec61851_state_a(void) {
 	evse_set_output(1000, false);
 
 	if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A) {
+		// If the button was released while in a different state,
+		// we see the state change back to A as an event that turns the LED back on (until standby)
 		if(button_reset()) {
 			led_set_on();
 		}
@@ -165,7 +167,12 @@ void iec61851_tick(void) {
 		iec61851_set_state(IEC61851_STATE_EF);
 	} else if(button.was_pressed) {
 		iec61851_set_state(IEC61851_STATE_A);
-		led.state = LED_STATE_OFF;
+
+		// As long as we are in "was_pressed"-state and the button is 
+		// still pressed (or key is turned to off) the LED stays off
+		if(button.state == BUTTON_STATE_PRESSED) {
+			led.state = LED_STATE_OFF;
+		}
 	} else {
 		// Wait for ADC measurements to be valid
 		if(ads1118.cp_invalid_counter > 0) {
