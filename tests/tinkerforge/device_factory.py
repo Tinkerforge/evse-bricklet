@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #############################################################
-# This file was automatically generated on 2020-04-20.      #
+# This file was automatically generated on 2020-10-28.      #
 #                                                           #
-# Python Bindings Version 2.1.25                            #
+# Python Bindings Version 2.1.27                            #
 #                                                           #
 # If you have a bugfix for this file and want to commit it, #
 # please fix the bug in the generator. You can find a link  #
@@ -13,11 +13,6 @@ try:
     from .brick_dc import BrickDC
 except ValueError:
     from brick_dc import BrickDC
-
-try:
-    from .brick_esp32 import BrickESP32
-except ValueError:
-    from brick_esp32 import BrickESP32
 
 try:
     from .brick_hat import BrickHAT
@@ -265,6 +260,11 @@ except ValueError:
     from bricklet_humidity_v2 import BrickletHumidityV2
 
 try:
+    from .bricklet_imu_v3 import BrickletIMUV3
+except ValueError:
+    from bricklet_imu_v3 import BrickletIMUV3
+
+try:
     from .bricklet_industrial_analog_out import BrickletIndustrialAnalogOut
 except ValueError:
     from bricklet_industrial_analog_out import BrickletIndustrialAnalogOut
@@ -308,6 +308,11 @@ try:
     from .bricklet_industrial_dual_0_20ma_v2 import BrickletIndustrialDual020mAV2
 except ValueError:
     from bricklet_industrial_dual_0_20ma_v2 import BrickletIndustrialDual020mAV2
+
+try:
+    from .bricklet_industrial_dual_ac_relay import BrickletIndustrialDualACRelay
+except ValueError:
+    from bricklet_industrial_dual_ac_relay import BrickletIndustrialDualACRelay
 
 try:
     from .bricklet_industrial_dual_analog_in import BrickletIndustrialDualAnalogIn
@@ -702,7 +707,6 @@ except ValueError:
 
 DEVICE_CLASSES = {
     BrickDC.DEVICE_IDENTIFIER: BrickDC,
-    BrickESP32.DEVICE_IDENTIFIER: BrickESP32,
     BrickHAT.DEVICE_IDENTIFIER: BrickHAT,
     BrickHATZero.DEVICE_IDENTIFIER: BrickHATZero,
     BrickIMU.DEVICE_IDENTIFIER: BrickIMU,
@@ -752,6 +756,7 @@ DEVICE_CLASSES = {
     BrickletHallEffectV2.DEVICE_IDENTIFIER: BrickletHallEffectV2,
     BrickletHumidity.DEVICE_IDENTIFIER: BrickletHumidity,
     BrickletHumidityV2.DEVICE_IDENTIFIER: BrickletHumidityV2,
+    BrickletIMUV3.DEVICE_IDENTIFIER: BrickletIMUV3,
     BrickletIndustrialAnalogOut.DEVICE_IDENTIFIER: BrickletIndustrialAnalogOut,
     BrickletIndustrialAnalogOutV2.DEVICE_IDENTIFIER: BrickletIndustrialAnalogOutV2,
     BrickletIndustrialCounter.DEVICE_IDENTIFIER: BrickletIndustrialCounter,
@@ -761,6 +766,7 @@ DEVICE_CLASSES = {
     BrickletIndustrialDigitalOut4V2.DEVICE_IDENTIFIER: BrickletIndustrialDigitalOut4V2,
     BrickletIndustrialDual020mA.DEVICE_IDENTIFIER: BrickletIndustrialDual020mA,
     BrickletIndustrialDual020mAV2.DEVICE_IDENTIFIER: BrickletIndustrialDual020mAV2,
+    BrickletIndustrialDualACRelay.DEVICE_IDENTIFIER: BrickletIndustrialDualACRelay,
     BrickletIndustrialDualAnalogIn.DEVICE_IDENTIFIER: BrickletIndustrialDualAnalogIn,
     BrickletIndustrialDualAnalogInV2.DEVICE_IDENTIFIER: BrickletIndustrialDualAnalogInV2,
     BrickletIndustrialDualRelay.DEVICE_IDENTIFIER: BrickletIndustrialDualRelay,

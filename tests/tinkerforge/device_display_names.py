@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #############################################################
-# This file was automatically generated on 2020-04-20.      #
+# This file was automatically generated on 2020-10-28.      #
 #                                                           #
-# Python Bindings Version 2.1.25                            #
+# Python Bindings Version 2.1.27                            #
 #                                                           #
 # If you have a bugfix for this file and want to commit it, #
 # please fix the bug in the generator. You can find a link  #
@@ -28,7 +28,6 @@ DEVICE_DISPLAY_NAMES = {
     29: 'IO-4 Bricklet',
     111: 'HAT Brick',
     112: 'HAT Zero Brick',
-    113: 'ESP32 Brick',
     210: 'Joystick Bricklet',
     211: 'LCD 16x2 Bricklet',
     212: 'LCD 20x4 Bricklet',
@@ -147,7 +146,9 @@ DEVICE_DISPLAY_NAMES = {
     2146: 'E-Paper 296x128 Bricklet',
     2147: 'CO2 Bricklet 2.0',
     2152: 'Energy Monitor Bricklet',
-    2153: 'Compass Bricklet'
+    2153: 'Compass Bricklet',
+    2161: 'IMU Bricklet 3.0',
+    2162: 'Industrial Dual AC Relay Bricklet'
 }
 
 def get_device_display_name(device_identifier):

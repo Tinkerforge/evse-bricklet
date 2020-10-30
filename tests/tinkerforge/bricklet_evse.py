@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #############################################################
-# This file was automatically generated on 2020-10-09.      #
+# This file was automatically generated on 2020-10-28.      #
 #                                                           #
-# Python Bindings Version 2.1.26                            #
+# Python Bindings Version 2.1.27                            #
 #                                                           #
 # If you have a bugfix for this file and want to commit it, #
 # please fix the bug in the generator. You can find a link  #
@@ -18,9 +18,10 @@ try:
 except ValueError:
     from ip_connection import Device, IPConnection, Error, create_char, create_char_list, create_string, create_chunk_data
 
-GetState = namedtuple('State', ['iec61851_state', 'contactor_state', 'contactor_error', 'lock_state', 'time_since_state_change', 'uptime'])
+GetState = namedtuple('State', ['iec61851_state', 'contactor_state', 'contactor_error', 'allowed_charging_current', 'lock_state', 'time_since_state_change', 'uptime'])
 GetHardwareConfiguration = namedtuple('HardwareConfiguration', ['jumper_configuration', 'has_lock_switch'])
 GetLowLevelState = namedtuple('LowLevelState', ['low_level_mode_enabled', 'led_state', 'cp_pwm_duty_cycle', 'adc_values', 'voltages', 'resistances', 'gpio', 'motor_direction', 'motor_duty_cycle'])
+GetMaxChargingCurrent = namedtuple('MaxChargingCurrent', ['max_current_configured', 'max_current_incoming_cable', 'max_current_outgoing_cable'])
 GetSPITFPErrorCount = namedtuple('SPITFPErrorCount', ['error_count_ack_checksum', 'error_count_message_checksum', 'error_count_frame', 'error_count_overflow'])
 GetIdentity = namedtuple('Identity', ['uid', 'connected_uid', 'position', 'hardware_version', 'firmware_version', 'device_identifier'])
 
@@ -40,8 +41,7 @@ class BrickletEVSE(Device):
     FUNCTION_GET_LOW_LEVEL_STATE = 3
     FUNCTION_SET_MAX_CHARGING_CURRENT = 4
     FUNCTION_GET_MAX_CHARGING_CURRENT = 5
-    FUNCTION_SET_LOW_LEVEL_OUTPUT = 6
-    FUNCTION_CALIBRATE = 7
+    FUNCTION_CALIBRATE = 6
     FUNCTION_GET_SPITFP_ERROR_COUNT = 234
     FUNCTION_SET_BOOTLOADER_MODE = 235
     FUNCTION_GET_BOOTLOADER_MODE = 236
@@ -112,8 +112,7 @@ class BrickletEVSE(Device):
         self.response_expected[BrickletEVSE.FUNCTION_GET_HARDWARE_CONFIGURATION] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_GET_LOW_LEVEL_STATE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_SET_MAX_CHARGING_CURRENT] = BrickletEVSE.RESPONSE_EXPECTED_FALSE
-        self.response_expected[BrickletEVSE.FUNCTION_GET_MAX_CHARGING_CURRENT] = BrickletEVSE.RESPONSE_EXPECTED_FALSE
-        self.response_expected[BrickletEVSE.FUNCTION_SET_LOW_LEVEL_OUTPUT] = BrickletEVSE.RESPONSE_EXPECTED_FALSE
+        self.response_expected[BrickletEVSE.FUNCTION_GET_MAX_CHARGING_CURRENT] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_CALIBRATE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_GET_SPITFP_ERROR_COUNT] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
         self.response_expected[BrickletEVSE.FUNCTION_SET_BOOTLOADER_MODE] = BrickletEVSE.RESPONSE_EXPECTED_ALWAYS_TRUE
@@ -137,7 +136,7 @@ class BrickletEVSE(Device):
         """
         self.check_validity()
 
-        return GetState(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_STATE, (), '', 20, 'B B B B I I'))
+        return GetState(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_STATE, (), '', 22, 'B B B H B I I'))
 
     def get_hardware_configuration(self):
         """
@@ -165,7 +164,7 @@ class BrickletEVSE(Device):
 
         self.ipcon.send_request(self, BrickletEVSE.FUNCTION_SET_MAX_CHARGING_CURRENT, (max_current,), 'H', 0, '')
 
-    def get_max_charging_current(self, max_current_configured, max_current_incoming_cable, max_current_outgoing_cable):
+    def get_max_charging_current(self):
         """
         * Max Current Configured -> set with :func:`Set Max Charging Current`
         * Max Current Incoming Cable -> set with jumper on EVSE
@@ -174,26 +173,7 @@ class BrickletEVSE(Device):
         """
         self.check_validity()
 
-        max_current_configured = int(max_current_configured)
-        max_current_incoming_cable = int(max_current_incoming_cable)
-        max_current_outgoing_cable = int(max_current_outgoing_cable)
-
-        self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_MAX_CHARGING_CURRENT, (max_current_configured, max_current_incoming_cable, max_current_outgoing_cable), 'H H H', 0, '')
-
-    def set_low_level_output(self, low_level_mode_enabled, cp_duty_cycle, motor_direction, motor_duty_cycle, relay_enabled, password):
-        """
-        TODO
-        """
-        self.check_validity()
-
-        low_level_mode_enabled = bool(low_level_mode_enabled)
-        cp_duty_cycle = int(cp_duty_cycle)
-        motor_direction = bool(motor_direction)
-        motor_duty_cycle = int(motor_duty_cycle)
-        relay_enabled = int(relay_enabled)
-        password = int(password)
-
-        self.ipcon.send_request(self, BrickletEVSE.FUNCTION_SET_LOW_LEVEL_OUTPUT, (low_level_mode_enabled, cp_duty_cycle, motor_direction, motor_duty_cycle, relay_enabled, password), '! H ! H H I', 0, '')
+        return GetMaxChargingCurrent(*self.ipcon.send_request(self, BrickletEVSE.FUNCTION_GET_MAX_CHARGING_CURRENT, (), '', 14, 'H H H'))
 
     def calibrate(self, state, password, value):
         """
