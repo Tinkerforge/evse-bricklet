@@ -5,7 +5,7 @@ $Descr A3 16535 11693
 encoding utf-8
 Sheet 1 1
 Title "EVSE Bricklet"
-Date "2020-05-19"
+Date "2020-11-05"
 Rev "1.4"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
@@ -2478,8 +2478,8 @@ F 3 "" H 3800 1000 60  0000 C CNN
 	1    3800 1000
 	0    -1   -1   0   
 $EndComp
-Text Notes 4250 1950 0    39   ~ 0
-Maximum Power Setting\nno jumper: invalid\n1<->3: 6A\n3<->5: 10A\n2<->4: 13A\n4<->6: 16A\n1<->3, 2<->4: 20A\n1<->3, 4<->6: 25A\n3<->5, 2<->4: 32A\n3<->5, 4<->6: reserved
+Text Notes 4250 2150 0    39   ~ 0
+Maximum Power Setting\nno jumper: invalid\nP0_0 = 3V3, P0_5 = 3V3 -> invalid\nP0_0 = DNC, P0_5 = 3V3 -> 6A\nP0_0 = GND, P0_5 = 3V3 -> 10A\nP0_0 = 3V3, P0_5 = DNC -> 13A\nP0_0 = DNC, P0_5 = DNC -> 16A\nP0_0 = GND, P0_5 = DNC -> 20A\nP0_0 = 3V3, P0_5 = GND -> 25A\nP0_0 = DNC, P0_5 = GND -> 25A\nP0_0 = GND, P0_5 = GND -> reserved
 Wire Wire Line
 	1500 2750 1650 2750
 Text GLabel 4000 2750 2    39   Output ~ 0
