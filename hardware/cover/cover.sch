@@ -165,7 +165,7 @@ Wire Wire Line
 NoConn ~ 2300 2200
 NoConn ~ 2300 3100
 Text Notes 4350 3050 0    50   ~ 0
-Maximum Power Setting\nno jumper: invalid\nP0_0 = 3V3, P0_5 = 3V3 -> invalid\nP0_0 = DNC, P0_5 = 3V3 -> 6A\nP0_0 = GND, P0_5 = 3V3 -> 10A\nP0_0 = 3V3, P0_5 = DNC -> 13A\nP0_0 = DNC, P0_5 = DNC -> 16A\nP0_0 = GND, P0_5 = DNC -> 20A\nP0_0 = 3V3, P0_5 = GND -> 25A\nP0_0 = DNC, P0_5 = GND -> 25A\nP0_0 = GND, P0_5 = GND -> reserved
+Maximum Power Setting\nno jumper: invalid\nP0_0 = 3V3, P0_5 = 3V3 -> invalid\nP0_0 = DNC, P0_5 = 3V3 -> 6A\nP0_0 = GND, P0_5 = 3V3 -> 10A\nP0_0 = 3V3, P0_5 = DNC -> 13A\nP0_0 = DNC, P0_5 = DNC -> 16A\nP0_0 = GND, P0_5 = DNC -> 20A\nP0_0 = 3V3, P0_5 = GND -> 25A\nP0_0 = DNC, P0_5 = GND -> 32A\nP0_0 = GND, P0_5 = GND -> reserved
 Text Notes 2500 1900 0    50   ~ 0
 PIN0 = P0_0
 Text Notes 2500 2750 0    50   ~ 0
