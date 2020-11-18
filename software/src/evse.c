@@ -284,18 +284,21 @@ void evse_tick_debug(void) {
 
 void evse_tick(void) {
 	// Wait one second on first startup
-	if(evse.startup_time != 0 && !system_timer_is_time_elapsed_ms(evse.startup_time, 5000)) {
+	if(evse.startup_time != 0 && !system_timer_is_time_elapsed_ms(evse.startup_time, 12000)) {
 		// If we see less then 11V during startup
 		// we go into calibration error.
 		if(evse.calibration_error || ((ads1118.cp_voltage_calibrated != 0) && (ads1118.cp_voltage_calibrated < 11000))) {
 			evse.calibration_error = true;
 			led_set_blinking(3);
-		} else {
-			led_set_on();
 		}
 		return;
 	}
-	evse.startup_time = 0;
+
+	// Turn LED on (LED flicker off after startup/calibration)
+	if(evse.startup_time != 0) {
+		evse.startup_time = 0;
+		led_set_on();
+	}
 
 	if(evse.calibration_state != 0) {
 		// Nothing here

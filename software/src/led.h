@@ -25,6 +25,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define LED_FLICKER_DURATION    50
+
 #define LED_BLINK_DURATION_ON   250
 #define LED_BLINK_DURATION_OFF  250
 #define LED_BLINK_DURATION_WAIT 2000
@@ -35,6 +37,7 @@ typedef enum {
     LED_STATE_OFF,
     LED_STATE_ON,
     LED_STATE_BLINKING,
+    LED_STATE_FLICKER,
     LED_STATE_BREATHING
 } LEDState;
 
@@ -47,6 +50,9 @@ typedef struct {
     uint32_t blink_count;
 	bool blink_on;
 	uint32_t blink_last_time;
+
+    bool flicker_on;
+    uint32_t flicker_last_time;
 } LED;
 
 extern LED led;

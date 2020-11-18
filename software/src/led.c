@@ -96,6 +96,8 @@ void led_init(void) {
 
 	ccu4_pwm_init(EVSE_LED_PIN, EVSE_LED_SLICE_NUMBER, LED_MAX_DUTY_CYCLE-1); // ~9.7 kHz
 	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+
+	led.state = LED_STATE_FLICKER;
 }
 
 void led_tick_status_off(void) {
@@ -133,6 +135,14 @@ void led_tick_status_blinking(void) {
 	}
 }
 
+void led_tick_status_flicker(void) {
+	if(system_timer_is_time_elapsed_ms(led.flicker_last_time, LED_FLICKER_DURATION)) {
+		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, led.flicker_on ? LED_ON : LED_OFF);
+		led.flicker_last_time = system_timer_get_ms();
+		led.flicker_on        = ! led.flicker_on;
+	}
+}
+
 void led_tick_status_breathing(void) {
 	static uint32_t last_breath_time = 0;
 	static int16_t last_breath_index = 0;
@@ -164,6 +174,7 @@ void led_tick(void) {
 		case LED_STATE_OFF:       led_tick_status_off();       break;
 		case LED_STATE_ON:        led_tick_status_on();        break;
 		case LED_STATE_BLINKING:  led_tick_status_blinking();  break;
+		case LED_STATE_FLICKER:   led_tick_status_flicker();  break;
 		case LED_STATE_BREATHING: led_tick_status_breathing(); break;
 	}
 }
