@@ -351,11 +351,11 @@ void ads1118_task_tick(void) {
 		// With the normal loop we have an ADC integration time of 250ms, so we
 		// can't possibly react fast enough.
 		// To fix this we have a "fast loop" that is used in state C.
-		// The fast loop measures with an integration time of TBDms and it only
+		// The fast loop measures with an integration time of ~8ms and it only
 		// measures the voltage between CP/PE.
 		// The voltage between PP/PE is ignored (the cable obviously can't be
 		// changed out while a car is charging, so it is save to ignore the
-		// PP/PE voltage while in state C.
+		// PP/PE voltage while in state C).
 
 		if(XMC_GPIO_GetInput(EVSE_RELAY_PIN)) {
 			configure_time = ads1118_task_fast_loop(configure_time);
