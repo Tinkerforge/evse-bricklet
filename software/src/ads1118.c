@@ -32,6 +32,8 @@
 #define ADS1118_MOVING_AVERAGE_LENGTH 4
 #define ADS1118_CONFIGURE_TIMEOUT 200
 
+#include "configs/config_evse.h"
+
 #include "evse.h"
 #include "iec61851.h"
 #include "button.h"
@@ -76,10 +78,15 @@ static void ads1118_init_spi(void) {
 // channel 0 = measure CP
 // channel 1 = measure PP
 // channel 2 = measure temperature
-uint8_t *ads1118_get_config_for_mosi(const uint8_t channel) {
+uint8_t *ads1118_get_config_for_mosi(const uint8_t channel, const bool normal) {
 	static uint8_t mosi[2] = {0, 0};
 
-	uint16_t config = ADS1118_CONFIG_SINGLE_SHOT | ADS1118_CONFIG_POWER_DOWN | ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_8SPS | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
+	uint16_t config = 0;
+	if(normal) { // normal loop
+		config = ADS1118_CONFIG_SINGLE_SHOT | ADS1118_CONFIG_POWER_DOWN | ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_8SPS   | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
+	} else { // fast loop
+		config = /* continous mode */                                     ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_128SPS | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
+	}
 	switch(channel) {
 		case 0: config |= ADS1118_CONFIG_INP_IS_IN0_AND_INN_IS_IN3; break;
 		case 1: config |= ADS1118_CONFIG_INP_IS_IN2_AND_INN_IS_IN3; break;
@@ -225,7 +232,8 @@ void ads1118_pp_voltage_from_miso(const uint8_t *miso) {
 	ads1118.pp_pe_resistance = moving_average_get(&ads1118.moving_average_pp);
 }
 
-void ads1118_task_tick(void) {
+// ADS1118 runs with 8 samples per second, so each loop takes about 250ms
+uint32_t ads1118_task_normal_loop(uint32_t configure_time) {
 	const XMC_GPIO_CONFIG_t config_low = {
 		.mode         = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
 		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
@@ -238,61 +246,122 @@ void ads1118_task_tick(void) {
 
 	uint8_t miso[2] = {0, 0};
 
+	// Wait for DRDY
+	coop_task_sleep_ms(10);
+	XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+
+	configure_time = system_timer_get_ms();
+	while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
+		if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
+			XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+			spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0, true), miso);
+			XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+			configure_time = system_timer_get_ms();
+		}
+		coop_task_yield();
+	}
+	XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+	// Read CP -> Configure PP
+	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(1, true), miso);
+	if(ads1118.cp_invalid_counter > 0) {
+		ads1118.cp_invalid_counter--;
+	} else {
+		ads1118_cp_voltage_from_miso(miso);
+	}
+
+	// Wait for DRDY
+	coop_task_sleep_ms(10);
+	XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+
+	configure_time = system_timer_get_ms();
+	while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
+		if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
+			XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+			spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(1, true), miso);
+			XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+			configure_time = system_timer_get_ms();
+		}
+		coop_task_yield();
+	}
+	XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+	// Read PP -> Configure CP
+	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0, true), miso);
+	if(ads1118.pp_invalid_counter > 0) {
+		ads1118.pp_invalid_counter--;
+	} else {
+		ads1118_pp_voltage_from_miso(miso);
+	}
+
+	return configure_time;
+}
+
+// ADS1118 runs with 128 samples per second, so each loop takes about 7.8125ms
+uint32_t ads1118_task_fast_loop(uint32_t configure_time) {
+	const XMC_GPIO_CONFIG_t config_low = {
+		.mode         = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
+		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
+	};
+
+	const XMC_GPIO_CONFIG_t config_select = {
+		.mode         = ADS1118_SELECT_PIN_MODE,
+		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
+	};
+
+	uint8_t miso[2] = {0, 0};
+
+	// Wait for DRDY
+	coop_task_sleep_ms(1);
+	XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+
+	configure_time = system_timer_get_ms();
+	while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
+		if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
+			XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+			spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0, false), miso);
+			XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+			configure_time = system_timer_get_ms();
+		}
+		coop_task_yield();
+	}
+	XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+
+	// Read / Configure CP
+	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0, false), miso);
+	if(ads1118.cp_invalid_counter > 0) {
+		ads1118.cp_invalid_counter--;
+	} else {
+		ads1118_cp_voltage_from_miso(miso);
+	}
+
+	return configure_time;
+}
+
+void ads1118_task_tick(void) {
+	uint8_t miso[2] = {0, 0};
+
 	// Configure CP
-	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0), miso);
+	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0, true), miso);
 
 	uint32_t configure_time = 0;
 
-	// ADS1118 runs with 8 samples per second,
-	// so each loop takes about 250ms
 	while(true) {
-		// Wait for DRDY
-		coop_task_sleep_ms(10);
-		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+		// Switch between normal loop and fast loop depending on IEC61851 state.
+		// When we are in state C, the standard says that we have to turn the
+		// contactor off within at most 100ms!
+		// With the normal loop we have an ADC integration time of 250ms, so we
+		// can't possibly react fast enough.
+		// To fix this we have a "fast loop" that is used in state C.
+		// The fast loop measures with an integration time of TBDms and it only
+		// measures the voltage between CP/PE.
+		// The voltage between PP/PE is ignored (the cable obviously can't be
+		// changed out while a car is charging, so it is save to ignore the
+		// PP/PE voltage while in state C.
 
-		configure_time = system_timer_get_ms();
-		while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
-			if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
-				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
-				spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0), miso);
-				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
-				configure_time = system_timer_get_ms();
-			}
-			coop_task_yield();
-		}
-		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
-		// Read CP -> Configure PP
-		spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(1), miso);
-		if(ads1118.cp_invalid_counter > 0) {
-			ads1118.cp_invalid_counter--;
+		if(XMC_GPIO_GetInput(EVSE_RELAY_PIN)) {
+			configure_time = ads1118_task_fast_loop(configure_time);
 		} else {
-			ads1118_cp_voltage_from_miso(miso);
+			configure_time = ads1118_task_normal_loop(configure_time);
 		}
-
-		// Wait for DRDY
-		coop_task_sleep_ms(10);
-		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
-
-		configure_time = system_timer_get_ms();
-		while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
-			if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
-				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
-				spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(1), miso);
-				XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
-				configure_time = system_timer_get_ms();
-			}
-			coop_task_yield();
-		}
-		XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
-		// Read PP -> Configure CP
-		spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0), miso);
-		if(ads1118.pp_invalid_counter > 0) {
-			ads1118.pp_invalid_counter--;
-		} else {
-			ads1118_pp_voltage_from_miso(miso);
-		}
-
-		// TODO: Read temperature?
 
 		coop_task_yield();
 	}
