@@ -83,9 +83,9 @@ uint8_t *ads1118_get_config_for_mosi(const uint8_t channel, const bool normal) {
 
 	uint16_t config = 0;
 	if(normal) { // normal loop
-		config = ADS1118_CONFIG_SINGLE_SHOT | ADS1118_CONFIG_POWER_DOWN | ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_8SPS   | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
+		config = ADS1118_CONFIG_SINGLE_SHOT | ADS1118_CONFIG_POWER_DOWN | ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_8SPS  | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
 	} else { // fast loop
-		config = /* continous mode */                                     ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_128SPS | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
+		config = /* continous mode */                                     ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_32SPS | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
 	}
 	switch(channel) {
 		case 0: config |= ADS1118_CONFIG_INP_IS_IN0_AND_INN_IS_IN3; break;
@@ -295,7 +295,7 @@ uint32_t ads1118_task_normal_loop(uint32_t configure_time) {
 	return configure_time;
 }
 
-// ADS1118 runs with 128 samples per second, so each loop takes about 7.8125ms
+// ADS1118 runs with 32 samples per second, so each loop takes about 31.25ms
 uint32_t ads1118_task_fast_loop(uint32_t configure_time) {
 	const XMC_GPIO_CONFIG_t config_low = {
 		.mode         = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
@@ -351,7 +351,7 @@ void ads1118_task_tick(void) {
 		// With the normal loop we have an ADC integration time of 250ms, so we
 		// can't possibly react fast enough.
 		// To fix this we have a "fast loop" that is used in state C.
-		// The fast loop measures with an integration time of ~8ms and it only
+		// The fast loop measures with an integration time of ~31ms and it only
 		// measures the voltage between CP/PE.
 		// The voltage between PP/PE is ignored (the cable obviously can't be
 		// changed out while a car is charging, so it is save to ignore the
