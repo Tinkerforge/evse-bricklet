@@ -72,6 +72,16 @@ void iec61851_set_state(IEC61851State state) {
 			led_set_on();
 		}
 
+		if((iec61851.state == IEC61851_STATE_C) && ((state == IEC61851_STATE_A ) || (state == IEC61851_STATE_B))) {
+			if(!evse.charging_autostart) {
+				// If we change from state C to either A or B and autostart is disabled,
+				// we set the buttom pressed flag.
+				// This means that the user needs to call "StartCharging()" through the API
+				// before the car starts to charge again.
+				button.was_pressed = true;
+			}
+		}
+
 		iec61851.state             = state;
 		iec61851.last_state_change = system_timer_get_ms();
 	}
