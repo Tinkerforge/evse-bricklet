@@ -30,7 +30,6 @@
 
 LED led;
 
-#if LOGGING_LEVEL == LOGGING_NONE
 
 // CIE1931 correction table
 const uint16_t led_cie1931[256] = {
@@ -80,7 +79,9 @@ void led_set_blinking(const uint8_t num) {
 	led.blink_on        = false;
 	led.blink_last_time = system_timer_get_ms();
 
+#if LOGGING_LEVEL == LOGGING_NONE
 	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+#endif
 }
 
 // Called whenever there is activity
@@ -88,28 +89,38 @@ void led_set_blinking(const uint8_t num) {
 void led_set_on(void) {
 	led.on_time = system_timer_get_ms();
 	led.state = LED_STATE_ON;
+#if LOGGING_LEVEL == LOGGING_NONE
 	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+#endif
 }
 
 void led_init(void) {
 	memset(&led, 0, sizeof(LED));
 
+#if LOGGING_LEVEL == LOGGING_NONE
 	ccu4_pwm_init(EVSE_LED_PIN, EVSE_LED_SLICE_NUMBER, LED_MAX_DUTY_CYCLE-1); // ~9.7 kHz
 	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+#endif
 
 	led.state = LED_STATE_FLICKER;
 }
 
 void led_tick_status_off(void) {
+#if LOGGING_LEVEL == LOGGING_NONE
 	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+#endif
 }
 
 void led_tick_status_on(void) {
 	if(system_timer_is_time_elapsed_ms(led.on_time, LED_STANDBY_TIME)) {
 		led.state = LED_STATE_OFF;
+#if LOGGING_LEVEL == LOGGING_NONE
 		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+#endif
 	} else {
+#if LOGGING_LEVEL == LOGGING_NONE
 		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+#endif
 	}
 }
 
@@ -122,14 +133,18 @@ void led_tick_status_blinking(void) {
 	} else if(led.blink_on) {
 		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_ON)) {
 			led.blink_last_time = system_timer_get_ms();
+#if LOGGING_LEVEL == LOGGING_NONE
 			ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+#endif
 			led.blink_on = false;
 			led.blink_count++;
 		}
 	} else {
 		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_OFF)) {
 			led.blink_last_time = system_timer_get_ms();
+#if LOGGING_LEVEL == LOGGING_NONE
 			ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+#endif
 			led.blink_on = true;
 		}
 	}
@@ -137,7 +152,9 @@ void led_tick_status_blinking(void) {
 
 void led_tick_status_flicker(void) {
 	if(system_timer_is_time_elapsed_ms(led.flicker_last_time, LED_FLICKER_DURATION)) {
+#if LOGGING_LEVEL == LOGGING_NONE
 		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, led.flicker_on ? LED_ON : LED_OFF);
+#endif
 		led.flicker_last_time = system_timer_get_ms();
 		led.flicker_on        = ! led.flicker_on;
 	}
@@ -166,7 +183,9 @@ void led_tick_status_breathing(void) {
 		up = false;
 	}
 
+#if LOGGING_LEVEL == LOGGING_NONE
 	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, 6553 - led_cie1931[last_breath_index]/10);
+#endif
 }
 
 void led_tick(void) {
@@ -178,10 +197,3 @@ void led_tick(void) {
 		case LED_STATE_BREATHING: led_tick_status_breathing(); break;
 	}
 }
-
-#else
-
-// If logging is enabled, we use the LED pin for logging
-void led_init(void) {}
-void led_tick(void) {}
-#endif
