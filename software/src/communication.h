@@ -47,6 +47,11 @@ void communication_init(void);
 #define EVSE_LED_STATE_FLICKER 3
 #define EVSE_LED_STATE_BREATHING 4
 
+#define EVSE_VEHICLE_STATE_NOT_CONNECTED 0
+#define EVSE_VEHICLE_STATE_CONNECTED 1
+#define EVSE_VEHICLE_STATE_CHARGING 2
+#define EVSE_VEHICLE_STATE_ERROR 3
+
 #define EVSE_CONTACTOR_STATE_AC1_NLIVE_AC2_NLIVE 0
 #define EVSE_CONTACTOR_STATE_AC1_LIVE_AC2_NLIVE 1
 #define EVSE_CONTACTOR_STATE_AC1_NLIVE_AC2_LIVE 2
@@ -107,6 +112,7 @@ typedef struct {
 typedef struct {
 	TFPMessageHeader header;
 	uint8_t iec61851_state;
+	uint8_t vehicle_state;
 	uint8_t contactor_state;
 	uint8_t contactor_error;
 	uint16_t allowed_charging_current;

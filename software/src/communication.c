@@ -67,6 +67,22 @@ BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Respons
 	response->uptime                   = system_timer_get_ms();
 	response->time_since_state_change  = response->uptime - iec61851.last_state_change;
 
+	if((iec61851.state == IEC61851_STATE_D) || (iec61851.state == IEC61851_STATE_EF)) {
+		response->vehicle_state = EVSE_VEHICLE_STATE_ERROR;
+	} else if(iec61851.state == IEC61851_STATE_C) {
+		response->vehicle_state = EVSE_VEHICLE_STATE_CHARGING;
+	} else if(iec61851.state == IEC61851_STATE_B) {
+		response->vehicle_state = EVSE_VEHICLE_STATE_CONNECTED;
+	} else { 
+		// For state A we may be not connected or connected with autostart disabled.
+		// We check this by looking at the CP/PE resistance. We expect at least 10000 ohm if a vehicle is connected.
+		if(ads1118.cp_pe_resistance > 10000) {
+			response->vehicle_state = EVSE_VEHICLE_STATE_CONNECTED;
+		} else {
+			response->vehicle_state = EVSE_VEHICLE_STATE_NOT_CONNECTED;
+		}
+	}
+
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
