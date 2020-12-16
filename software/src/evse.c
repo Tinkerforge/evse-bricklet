@@ -236,6 +236,7 @@ void evse_init(void) {
 	evse.calibration_state = 0;
 	evse.config_jumper_current_software = 6000; // default software configuration is 6A
 	evse.max_current_configured = 32000; // default user defined current ist 32A
+	evse.charging_autostart = true;
 
 	evse_load_calibration();
 	evse_init_jumper();

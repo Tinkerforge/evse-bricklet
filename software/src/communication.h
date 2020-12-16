@@ -44,7 +44,8 @@ void communication_init(void);
 #define EVSE_LED_STATE_OFF 0
 #define EVSE_LED_STATE_ON 1
 #define EVSE_LED_STATE_BLINKING 2
-#define EVSE_LED_STATE_BREATHING 3
+#define EVSE_LED_STATE_FLICKER 3
+#define EVSE_LED_STATE_BREATHING 4
 
 #define EVSE_CONTACTOR_STATE_AC1_NLIVE_AC2_NLIVE 0
 #define EVSE_CONTACTOR_STATE_AC1_LIVE_AC2_NLIVE 1
@@ -93,6 +94,10 @@ void communication_init(void);
 #define FID_SET_MAX_CHARGING_CURRENT 4
 #define FID_GET_MAX_CHARGING_CURRENT 5
 #define FID_CALIBRATE 6
+#define FID_START_CHARGING 7
+#define FID_STOP_CHARGING 8
+#define FID_SET_CHARGING_AUTOSTART 9
+#define FID_GET_CHARGING_AUTOSTART 10
 
 
 typedef struct {
@@ -165,6 +170,28 @@ typedef struct {
 	bool success;
 } __attribute__((__packed__)) Calibrate_Response;
 
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) StartCharging;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) StopCharging;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool autostart;
+} __attribute__((__packed__)) SetChargingAutostart;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetChargingAutostart;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool autostart;
+} __attribute__((__packed__)) GetChargingAutostart_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
@@ -173,6 +200,10 @@ BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data
 BootloaderHandleMessageResponse set_max_charging_current(const SetMaxChargingCurrent *data);
 BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCurrent *data, GetMaxChargingCurrent_Response *response);
 BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Response *response);
+BootloaderHandleMessageResponse start_charging(const StartCharging *data);
+BootloaderHandleMessageResponse stop_charging(const StopCharging *data);
+BootloaderHandleMessageResponse set_charging_autostart(const SetChargingAutostart *data);
+BootloaderHandleMessageResponse get_charging_autostart(const GetChargingAutostart *data, GetChargingAutostart_Response *response);
 
 // Callbacks
 

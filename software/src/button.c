@@ -26,6 +26,7 @@
 #include "bricklib2/hal/system_timer/system_timer.h"
 
 #include "led.h"
+#include "evse.h"
 
 #include <string.h>
 
@@ -61,7 +62,11 @@ void button_tick(void) {
 
 bool button_reset(void) {
 	if((button.state != BUTTON_STATE_PRESSED) && button.was_pressed) {
-		button.was_pressed = false;
+		// If autostart is disabled, the button can only be "unpressed" through the API
+		// by calling "StartCharging()"
+		if(!evse.charging_autostart) {
+			button.was_pressed = false;
+		}
 		return true;
 	}
 

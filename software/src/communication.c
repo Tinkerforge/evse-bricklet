@@ -36,6 +36,7 @@
 #include "led.h"
 #include "contactor_check.h"
 #include "lock.h"
+#include "button.h"
 
 #define LOW_LEVEL_PASSWORD 0x4223B00B
 
@@ -47,6 +48,10 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_SET_MAX_CHARGING_CURRENT: return set_max_charging_current(message);
 		case FID_GET_MAX_CHARGING_CURRENT: return get_max_charging_current(message, response);
 		case FID_CALIBRATE: return calibrate(message, response);
+		case FID_START_CHARGING: return start_charging(message);
+		case FID_STOP_CHARGING: return stop_charging(message);
+		case FID_SET_CHARGING_AUTOSTART: return set_charging_autostart(message);
+		case FID_GET_CHARGING_AUTOSTART: return get_charging_autostart(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -100,7 +105,7 @@ BootloaderHandleMessageResponse set_max_charging_current(const SetMaxChargingCur
 }
 
 BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCurrent *data, GetMaxChargingCurrent_Response *response) {
-	response->header.length = sizeof(GetMaxChargingCurrent_Response);
+	response->header.length              = sizeof(GetMaxChargingCurrent_Response);
 	response->max_current_configured     = evse.max_current_configured;
 	response->max_current_outgoing_cable = iec61851_get_ma_from_pp_resistance();
 	response->max_current_incoming_cable = iec61851_get_ma_from_jumper();
@@ -141,6 +146,33 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 	} else { 
 		response->success = false;
 	}
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse start_charging(const StartCharging *data) {
+	// Starting a new charge is the same as "releasing" a button press
+	button.was_pressed = false;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse stop_charging(const StopCharging *data) {
+	// Stopping the charging is the same as pressing the button
+	button.was_pressed = true;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse set_charging_autostart(const SetChargingAutostart *data) {
+	evse.charging_autostart = data->autostart;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_charging_autostart(const GetChargingAutostart *data, GetChargingAutostart_Response *response) {
+	response->header.length = sizeof(GetChargingAutostart_Response);
+	response->autostart     = evse.charging_autostart;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }

@@ -69,6 +69,7 @@ typedef struct {
 
 	uint16_t max_current_configured;
 	bool calibration_error;
+	bool charging_autostart;
 } EVSE;
 
 extern EVSE evse;
