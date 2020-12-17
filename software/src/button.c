@@ -64,7 +64,7 @@ bool button_reset(void) {
 	if((button.state != BUTTON_STATE_PRESSED) && button.was_pressed) {
 		// If autostart is disabled, the button can only be "unpressed" through the API
 		// by calling "StartCharging()"
-		if(!evse.charging_autostart) {
+		if(evse.charging_autostart) {
 			button.was_pressed = false;
 		}
 		return true;
