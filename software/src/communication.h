@@ -144,8 +144,6 @@ typedef struct {
 	int16_t voltages[3];
 	uint32_t resistances[2];
 	uint8_t gpio[1];
-	bool motor_direction;
-	uint16_t motor_duty_cycle;
 } __attribute__((__packed__)) GetLowLevelState_Response;
 
 typedef struct {

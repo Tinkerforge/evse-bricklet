@@ -75,11 +75,11 @@ BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Respons
 		response->vehicle_state = EVSE_VEHICLE_STATE_CONNECTED;
 	} else { 
 		// For state A we may be not connected or connected with autostart disabled.
-		// We check this by looking at the CP/PE resistance. We expect at least 10000 ohm if a vehicle is connected.
+		// We check this by looking at the CP/PE resistance. We expect at least 10000 ohm if a vehicle is not connected.
 		if(ads1118.cp_pe_resistance > 10000) {
-			response->vehicle_state = EVSE_VEHICLE_STATE_CONNECTED;
-		} else {
 			response->vehicle_state = EVSE_VEHICLE_STATE_NOT_CONNECTED;
+		} else {
+			response->vehicle_state = EVSE_VEHICLE_STATE_CONNECTED;
 		}
 	}
 
@@ -107,8 +107,6 @@ BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data
 	response->resistances[0]         = ads1118.cp_pe_resistance;
 	response->resistances[1]         = ads1118.pp_pe_resistance;
 	response->gpio[0]                = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN) | (XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN) << 1) | (XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN) << 2) | (XMC_GPIO_GetInput(EVSE_RELAY_PIN) << 3) | (XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN) << 4);
-	response->motor_direction        = evse.low_level_motor_direction;
-	response->motor_duty_cycle       = evse.low_level_motor_duty_cycle;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
