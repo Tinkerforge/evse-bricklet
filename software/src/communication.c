@@ -181,6 +181,13 @@ BootloaderHandleMessageResponse stop_charging(const StopCharging *data) {
 BootloaderHandleMessageResponse set_charging_autostart(const SetChargingAutostart *data) {
 	evse.charging_autostart = data->autostart;
 
+	// If autostart is disabled and there is not currently a car charging
+	// we set "was_pressed" to make sure that the user needs to call start_charging before
+	// the car starts charing.
+	if(!evse.charging_autostart && (iec61851.state != IEC61851_STATE_C)) {
+		button.was_pressed = true;
+	}
+
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
