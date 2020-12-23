@@ -186,7 +186,7 @@ void evse_load_calibration(void) {
 	if(page[0] != EVSE_CALIBRATION_MAGIC) {
 		ads1118.cp_cal_mul          = 1;
 		ads1118.cp_cal_div          = 1;
-		ads1118.cp_cal_diff_voltage = -50;
+		ads1118.cp_cal_diff_voltage = -90; // -90 seems to be around average between all EVSEs we have tested, so we use it as default
 	} else {
 		ads1118.cp_cal_mul          = page[EVSE_CALIBRATION_MUL_POS]  - INT16_MAX;
 		ads1118.cp_cal_div          = page[EVSE_CALIBRATION_DIV_POS]  - INT16_MAX;
