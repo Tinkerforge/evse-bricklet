@@ -284,7 +284,7 @@ void evse_tick_debug(void) {
 }
 
 void evse_tick(void) {
-	// Wait one second on first startup
+	// Wait 12 seconds on first startup for DC-Wächter calibration
 	if(evse.startup_time != 0 && !system_timer_is_time_elapsed_ms(evse.startup_time, 12000)) {
 		// If we see less then 11V during startup
 		// we go into calibration error.
