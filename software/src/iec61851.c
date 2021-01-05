@@ -52,6 +52,19 @@
 #define IEC61851_CP_RESISTANCE_STATE_C   300
 #define IEC61851_CP_RESISTANCE_STATE_D   150
 
+// Real world tests:
+
+// With Renault Zoe (2020 Model) we see the following real-world resistances
+// (they highly depend on charging current with Zoe)
+// 32A - 800 Ohm
+// 16A - 680 Ohm
+// 14A - 660 Ohm
+// 12A - 625 Ohm
+// 10A - 574 Ohm
+// 8A  - 513 Ohm
+// 6A  - 400 Ohm
+// This is a crazy variance, but it is within the 1890 Ohm - 300 Ohm window that we accept for state C
+
 
 // Resistance between PP/PE
 // 1000..2200 Ohm => 13A
