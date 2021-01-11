@@ -193,7 +193,7 @@ void led_tick(void) {
 		case LED_STATE_OFF:       led_tick_status_off();       break;
 		case LED_STATE_ON:        led_tick_status_on();        break;
 		case LED_STATE_BLINKING:  led_tick_status_blinking();  break;
-		case LED_STATE_FLICKER:   led_tick_status_flicker();  break;
+		case LED_STATE_FLICKER:   led_tick_status_flicker();   break;
 		case LED_STATE_BREATHING: led_tick_status_breathing(); break;
 	}
 }

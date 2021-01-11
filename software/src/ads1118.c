@@ -118,7 +118,7 @@ uint16_t ads1118_cp_adc_avg_queue_get(void) {
 	// Sort the queue
 	qsort(tmp, ADS1118_CP_ADC_AVG_NUM, sizeof(uint16_t), ads1118_sort_compare);
 
-	// Return the value a 1/3 above the median
+	// Return the value at 1/3 above the median
 	return tmp[ADS1118_CP_ADC_AVG_NUM*2/3];
 }
 
@@ -128,10 +128,10 @@ void ads1118_cp_handle_continuous_calibration(const uint16_t adc_value) {
 		return;
 	}
 
-	// If the adc value is below 11V, we ignore it.
+	// If the adc value is below 11.75V, we ignore it.
 	// We don't accept a voltage this small as max cp voltage
 	const int16_t voltage = SCALE(adc_value, 6574, 31643, -12000, 12000);
-	if(voltage < 11000) {
+	if(voltage < 11750) {
 		return;
 	}
 
