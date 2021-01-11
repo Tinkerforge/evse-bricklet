@@ -18,6 +18,11 @@ if __name__ == "__main__":
     evse_tester = EVSETester(log_func = no_log)
     print('... OK')
 
+    data = []
+
+    ident = evse_tester.evse.get_identity()
+    data.append(ident.uid)
+
     # Initial config
     evse_tester.set_contactor(True, False)
     evse_tester.set_diode(True)
@@ -29,6 +34,7 @@ if __name__ == "__main__":
     print('--> Flackert LED? Wenn nicht kaputt! <--')
     time.sleep(15)
     print('... OK')
+
 
     hw_conf = evse_tester.evse.get_hardware_configuration()
     print('Teste Jumper-Einstellung')
@@ -49,6 +55,7 @@ if __name__ == "__main__":
 
     print('Starte CP/PE Kalibrierung (2,5 Sekunden)')
     voltage1 = int(input("CP/PE Spannung eingeben (in mV): "))
+    data.append(str(voltage1))
     if 11500 < voltage1 < 12500:
         print('Kalibriere mit {0}mV'.format(voltage1))
     else:
@@ -63,6 +70,7 @@ if __name__ == "__main__":
     time.sleep(2.5)
 
     voltage2 = int(input("CP/PE Spannung eingeben (in mV): "))
+    data.append(str(voltage2))
     if -12500 < voltage2 < -11500:
         print('Kalibriere mit {0}mV'.format(voltage2))
     else:
@@ -70,7 +78,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     offset = voltage1 + voltage2
-    if -200 < voltage2 < 0:
+    if -200 < offset < 0:
         print('Setze Offset {0}mV (v1 {1}mV, v2 {2}mV)'.format(offset, voltage1, voltage2))
     else:
         print('Offset nicht erlaubt {0}mV (Erwarte zwischen 0 und -200)'.format(offset))
@@ -91,6 +99,7 @@ if __name__ == "__main__":
 
     print('Test PP/CP Widerstand (ohne PWM)')
     ll = evse_tester.evse.get_low_level_state()
+    data.append(str(ll.resistances[0]))
     if 880*0.8 < ll.resistances[0] < 2700*1.20:
         print('... OK ({0} Ohm)'.format(ll.resistances[0]))
     else:
@@ -112,6 +121,7 @@ if __name__ == "__main__":
     print('Prüfe PP/PE Widerstand')
     ll = evse_tester.evse.get_low_level_state()
     if 200 < ll.resistances[1] < 240:
+        data.append(str(ll.resistances[1]))
         print('... OK ({0} Ohm)'.format(ll.resistances[0]))
     else:
         print('-----------------> NICHT OK {0}'.format(ll.resistances[1]))
@@ -122,6 +132,7 @@ if __name__ == "__main__":
         time.sleep(1)
         ll = evse_tester.evse.get_low_level_state()
         if 880*0.8 < ll.resistances[0] < 880*1.20:
+            data.append(str(ll.resistances[0]))
             print('... OK ({0} Ohm)'.format(ll.resistances[0]))
         else:
             print('-----------------> NICHT OK {0}'.format(ll.resistances[0]))
@@ -135,9 +146,10 @@ if __name__ == "__main__":
     t2 = time.time()
 
     delay = int((t2-t1)*1000)
+    data.append(str(delay))
     print('... OK')
 
-    if delay <= 110: # allow maximum of 10% over standard
+    if delay <= 125: # allow maximum of 25ms over standard
         print('Ausschaltzeit: {0}ms OK'.format(delay))
     else:
         print('Ausschaltzeit: {0}ms'.format(delay))
@@ -161,3 +173,6 @@ if __name__ == "__main__":
 
     print('')
     print('Fertig. Alles OK')
+
+    with open('full_test_log.csv', 'a+') as f:
+        f.write(', '.join(data) + '\n')
