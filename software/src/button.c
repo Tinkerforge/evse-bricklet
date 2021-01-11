@@ -66,8 +66,8 @@ bool button_reset(void) {
 		// by calling "StartCharging()"
 		if(evse.charging_autostart) {
 			button.was_pressed = false;
+			return true;
 		}
-		return true;
 	}
 
 	return false;
