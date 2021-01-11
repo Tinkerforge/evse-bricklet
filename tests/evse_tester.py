@@ -23,17 +23,23 @@ from tinkerforge.bricklet_industrial_counter           import BrickletIndustrial
 
 import time
 
+log = print 
+
 class EVSETester:
-    def __init__(self):
+    def __init__(self, log_func = None):
+        if log_func:
+            global log
+            log = log_func
+
         self.ipcon = IPConnection()
         self.ipcon.connect(HOST, PORT)
         self.ipcon.register_callback(IPConnection.CALLBACK_ENUMERATE, self.cb_enumerate)
         self.ipcon.enumerate()
 
-        print("Trying to find EVSE Bricklet...")
+        log("Trying to find EVSE Bricklet...")
         while UID_EVSE == None:
             time.sleep(0.1)
-        print("Found EVSE Bricklet: {0}".format(UID_EVSE))
+        log("Found EVSE Bricklet: {0}".format(UID_EVSE))
 
         self.evse = BrickletEVSE(UID_EVSE, self.ipcon)
     
@@ -48,32 +54,35 @@ class EVSETester:
         global UID_EVSE
         if device_identifier == BrickletEVSE.DEVICE_IDENTIFIER:
             UID_EVSE = uid
-    
+
     # Live = True
     def set_contactor(self, contactor_input, contactor_output):
         if contactor_input:
             self.ido4.set_pwm_configuration(0, 500, 5000)
-            print('AC0 live')
+            log('AC0 live')
         else:
             self.ido4.set_pwm_configuration(0, 500, 0)
-            print('AC0 off')
+            log('AC0 off')
 
         if contactor_output:
             self.ido4.set_pwm_configuration(1, 500, 5000)
-            print('AC1 live')
+            log('AC1 live')
         else:
             self.ido4.set_pwm_configuration(1, 500, 0)
-            print('AC1 off')
+            log('AC1 off')
 
     def set_diode(self, enable):
         value = list(self.iqr1.get_value())
         value[0] = enable
         self.iqr1.set_value(value)
         if enable:
-            print("Enable lock switch configuration diode")
+            log("Enable lock switch configuration diode")
         else:
-            print("Disable lock switch configuration diode")
-    
+            log("Disable lock switch configuration diode")
+
+    def get_cp_pe_voltage(self):
+        return self.idai.get_voltage(1)
+
     def set_cp_pe_resistor(self, r2700, r880, r240):
         value = list(self.iqr1.get_value())
         value[1] = r2700
@@ -86,8 +95,8 @@ class EVSETester:
         if r880:  l.append("880 Ohm")
         if r240:  l.append("240 Ohm")
     
-        print("Set CP/PE resistor: " + ', '.join(l))
-      
+        log("Set CP/PE resistor: " + ', '.join(l))
+
     def set_pp_pe_resistor(self, r1500, r680, r220, r100):
         value = [r1500, r680, r220, r100]
         self.iqr2.set_value(value)
@@ -98,13 +107,13 @@ class EVSETester:
         if r220:  l.append("220 Ohm")
         if r100:  l.append("110 Ohm")
     
-        print("Set PP/PE resistor: " + ', '.join(l)) 
+        log("Set PP/PE resistor: " + ', '.join(l)) 
 
     def wait_for_contactor_gpio(self, active):
         if active:
-            print("Waiting for contactor GPIO to become active...")
+            log("Waiting for contactor GPIO to become active...")
         else:
-            print("Waiting for contactor GPIO to become inactive...")
+            log("Waiting for contactor GPIO to become inactive...")
 
         while True:
             state = self.evse.get_low_level_state()
@@ -112,7 +121,21 @@ class EVSETester:
                 break
             time.sleep(0.01)
 
-        print("Done")
+        log("Done")
+
+    def wait_for_button_gpio(self, active):
+        if active:
+            log("Waiting for button GPIO to become active...")
+        else:
+            log("Waiting for button GPIO to become inactive...")
+
+        while True:
+            state = self.evse.get_low_level_state()
+            if state.gpio[0] == active:
+                break
+            time.sleep(0.1)
+
+        log("Done")
 
 if __name__ == "__main__":
     evse_tester = EVSETester()
