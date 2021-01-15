@@ -195,7 +195,15 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 		new_resistance = 0xFFFF;
 	} else {
 		// resistance divider, 910 ohm on EVSE
-		new_resistance = 910*ads1118.cp_high_voltage/(ads1118.cp_cal_max_voltage - ads1118.cp_high_voltage);
+		// diode voltage drop 650mV (value is educated guess)
+		// voltage drop of opamp under with 880 ohm load: 617mV
+		if(evse.low_level_cp_duty_cycle == 1000) { // w/o PWM
+			new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_2700ohm) - ads1118.cp_high_voltage);
+		} else { // w/ PWM
+			uint32_t ma = iec61851_get_max_ma();
+			uint32_t index = SCALE(ma, 6000, 32000, 0, ADS1118_880OHM_CAL_NUM-1);
+			new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_880ohm[index])  - ads1118.cp_high_voltage);
+		}
 	}
 
 	if(ads1118.moving_average_cp_new) {

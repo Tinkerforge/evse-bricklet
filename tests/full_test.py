@@ -67,7 +67,29 @@ if __name__ == "__main__":
         print('Fehler während EVSE-Kalibrierung: {0}, {1}, {2}'.format(1, 0x0BB03201, voltage1))
         sys.exit(1)
 
+    print('Kalibriere mit 2700 Ohm (3,5 Sekunden)')
+    time.sleep(1)
+    evse_tester.set_cp_pe_resistor(True, False, False)
     time.sleep(2.5)
+    ret = evse_tester.evse.calibrate(2, 0x0BB03202, 0)
+    if not ret:
+        print('Fehler während EVSE-Kalibrierung: 2700ohm')
+        sys.exit(1)
+
+    evse_tester.set_cp_pe_resistor(True, True, False)
+
+    cal_state = 3
+    for a in range(6, 33, 2):
+        print('Kalibriere mit 880 Ohm bei {0}A (3,5 Sekunden)'.format(a))
+        time.sleep(3.5)
+        ret = evse_tester.evse.calibrate(cal_state, 0x0BB03200 + cal_state, 0)
+        cal_state += 1
+        if not ret:
+            print('Fehler während EVSE-Kalibrierung: 880ohm {0}A'.format(a))
+            sys.exit(1)
+
+    evse_tester.set_cp_pe_resistor(False, False, False)
+    time.sleep(1)
 
     voltage2 = int(input("CP/PE Spannung eingeben (in mV): "))
     data.append(str(voltage2))
@@ -78,15 +100,17 @@ if __name__ == "__main__":
         sys.exit(1)
 
     offset = voltage1 + voltage2
-    if -200 < offset < 0:
+    if -200 < offset < 200:
         print('Setze Offset {0}mV (v1 {1}mV, v2 {2}mV)'.format(offset, voltage1, voltage2))
     else:
-        print('Offset nicht erlaubt {0}mV (Erwarte zwischen 0 und -200)'.format(offset))
+        print('Offset nicht erlaubt {0}mV (Erwarte zwischen 200 und -200)'.format(offset))
         sys.exit(1)
-    ret = evse_tester.evse.calibrate(2, 0x0BB03202, offset)
+
+    ret = evse_tester.evse.calibrate(17, 0x0BB03211, offset)
     if not ret:
         print('Fehler während EVSE-Kalibrierung: {0}, {1}, {2}'.format(2, 0x0BB03202, offset))
         sys.exit(1)
+
     print('... OK')
 
     print('Warte auf Autokalibrierung')
@@ -122,16 +146,16 @@ if __name__ == "__main__":
     ll = evse_tester.evse.get_low_level_state()
     if 200 < ll.resistances[1] < 240:
         data.append(str(ll.resistances[1]))
-        print('... OK ({0} Ohm)'.format(ll.resistances[0]))
+        print('... OK ({0} Ohm)'.format(ll.resistances[1]))
     else:
         print('-----------------> NICHT OK {0}'.format(ll.resistances[1]))
 
-    for a in range(6, 32, 2):
-        print('Test {0}A'.format(a))
+    for a in range(6, 33, 2):
+        print('Test CP/PE {0}A'.format(a))
         evse_tester.evse.set_max_charging_current(a*1000)
-        time.sleep(1)
+        time.sleep(2)
         ll = evse_tester.evse.get_low_level_state()
-        if 880*0.8 < ll.resistances[0] < 880*1.20:
+        if 880*0.7 < ll.resistances[0] < 880*1.30:
             data.append(str(ll.resistances[0]))
             print('... OK ({0} Ohm)'.format(ll.resistances[0]))
         else:

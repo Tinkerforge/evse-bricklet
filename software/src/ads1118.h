@@ -28,6 +28,8 @@
 #include "bricklib2/utility/moving_average.h"
 
 #define ADS1118_CP_ADC_AVG_NUM 32
+#define ADS1118_DIODE_DROP 650 // educated guess for diode drop of diode in car between CP/PE
+#define ADS1118_880OHM_CAL_NUM 14
 
 typedef struct {
     uint16_t cp_adc_value;
@@ -42,6 +44,8 @@ typedef struct {
     int16_t  cp_cal_diff_voltage; // Calibration done during flash/test through API
     int16_t  cp_cal_mul;          // Calibration done during flash/test through API
     int16_t  cp_cal_div;          // Calibration done during flash/test through API
+    int16_t  cp_cal_2700ohm;      // Calibration done during flash/test through API
+    int16_t  cp_cal_880ohm[ADS1118_880OHM_CAL_NUM]; // Calibration done during flash/test through API
     uint8_t  cp_invalid_counter;
 
     uint16_t pp_adc_value;

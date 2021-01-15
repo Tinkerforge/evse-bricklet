@@ -184,13 +184,21 @@ void evse_load_calibration(void) {
 	// This is either our first startup or something went wrong.
 	// We initialize the calibration data with sane default values and start a calibration.
 	if(page[0] != EVSE_CALIBRATION_MAGIC) {
-		ads1118.cp_cal_mul          = 1;
-		ads1118.cp_cal_div          = 1;
-		ads1118.cp_cal_diff_voltage = -90; // -90 seems to be around average between all EVSEs we have tested, so we use it as default
+		ads1118.cp_cal_mul           = 1;
+		ads1118.cp_cal_div           = 1;
+		ads1118.cp_cal_diff_voltage  = -90; // -90 seems to be around average between all EVSEs we have tested, so we use it as default
+		ads1118.cp_cal_2700ohm       = 0;
+		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+			ads1118.cp_cal_880ohm[i] = 0;
+		}
 	} else {
-		ads1118.cp_cal_mul          = page[EVSE_CALIBRATION_MUL_POS]  - INT16_MAX;
-		ads1118.cp_cal_div          = page[EVSE_CALIBRATION_DIV_POS]  - INT16_MAX;
-		ads1118.cp_cal_diff_voltage = page[EVSE_CALIBRATION_DIFF_POS] - INT16_MAX;
+		ads1118.cp_cal_mul           = page[EVSE_CALIBRATION_MUL_POS]      - INT16_MAX;
+		ads1118.cp_cal_div           = page[EVSE_CALIBRATION_DIV_POS]      - INT16_MAX;
+		ads1118.cp_cal_diff_voltage  = page[EVSE_CALIBRATION_DIFF_POS]     - INT16_MAX;
+		ads1118.cp_cal_2700ohm       = page[EVSE_CALIBRATION_2700_POS]     - INT16_MAX;
+		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+			ads1118.cp_cal_880ohm[i] = page[EVSE_CALIBRATION_880_POS + i]  - INT16_MAX;
+		}
 	}
 
 	logd("Load calibration: mul %d, div %d, diff %d\n\r", ads1118.cp_cal_mul, ads1118.cp_cal_div, ads1118.cp_cal_diff_voltage);
@@ -199,10 +207,14 @@ void evse_load_calibration(void) {
 void evse_save_calibration(void) {
 	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
 
-	page[EVSE_CALIBRATION_MAGIC_POS] = EVSE_CALIBRATION_MAGIC;
-	page[EVSE_CALIBRATION_MUL_POS]   = ads1118.cp_cal_mul          + INT16_MAX;
-	page[EVSE_CALIBRATION_DIV_POS]   = ads1118.cp_cal_div          + INT16_MAX;
-	page[EVSE_CALIBRATION_DIFF_POS]  = ads1118.cp_cal_diff_voltage + INT16_MAX;
+	page[EVSE_CALIBRATION_MAGIC_POS]       = EVSE_CALIBRATION_MAGIC;
+	page[EVSE_CALIBRATION_MUL_POS]         = ads1118.cp_cal_mul          + INT16_MAX;
+	page[EVSE_CALIBRATION_DIV_POS]         = ads1118.cp_cal_div          + INT16_MAX;
+	page[EVSE_CALIBRATION_DIFF_POS]        = ads1118.cp_cal_diff_voltage + INT16_MAX;
+	page[EVSE_CALIBRATION_2700_POS]        = ads1118.cp_cal_2700ohm      + INT16_MAX;
+	for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+		page[EVSE_CALIBRATION_880_POS + i] = ads1118.cp_cal_880ohm[i]    + INT16_MAX;
+	}
 
 	bootloader_write_eeprom_page(EVSE_CALIBRATION_PAGE, page);
 }

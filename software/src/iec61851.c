@@ -181,6 +181,10 @@ void iec61851_state_ef(void) {
 }
 
 void iec61851_tick(void) {
+	if(evse.calibration_state != 0) {
+		return;
+	}
+
 	if(contactor_check.error != 0) {
 		led_set_blinking(4);
 		iec61851_set_state(IEC61851_STATE_EF);

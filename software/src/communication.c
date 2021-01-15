@@ -141,15 +141,39 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 		ads1118.cp_cal_mul = data->value;        // multiply by calibrated voltage
 		ads1118.cp_cal_div = ads1118.cp_voltage; // divide by uncalibrated voltage
 
-		// Set duty cycle to 0%
-		ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 0*64);
 		response->success = true;
 		logd("cal mul %d, div %d\n\r", ads1118.cp_cal_mul, ads1118.cp_cal_div);
 	} else if((evse.calibration_state == 1) && (data->state == 2)) {
+	    evse.calibration_state = 2;
+		ads1118.cp_cal_2700ohm = ads1118.cp_cal_max_voltage - (910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP) + 2700*ads1118.cp_high_voltage)/2700;
+
+		response->success = true;
+		logd("cal 2700ohm %d\n\r", ads1118.cp_cal_2700ohm);
+
+		uint16_t dc = iec61851_get_duty_cycle_for_ma(6000);
+		ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - dc*64);
+		evse.low_level_cp_duty_cycle = dc;
+	} else if((evse.calibration_state >= 2) && (evse.calibration_state <= 15) && (data->state == (evse.calibration_state + 1))) {
+		ads1118.cp_cal_880ohm[evse.calibration_state-2] = ads1118.cp_cal_max_voltage - (910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP) + 880*ads1118.cp_high_voltage)/880;
+
+		response->success = true;
+		logd("cal 880ohm %d -> %d\n\r", evse.calibration_state-2, ads1118.cp_cal_880ohm[evse.calibration_state-2]);
+
+	    evse.calibration_state++;
+		if(evse.calibration_state < 16) {
+			uint16_t dc = iec61851_get_duty_cycle_for_ma(6000 + (evse.calibration_state-2)*2000);
+			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - dc*64);	
+			evse.low_level_cp_duty_cycle = dc;
+		} else if(evse.calibration_state == 16) {
+			// Set duty cycle to 0%
+			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 0*64);
+			evse.low_level_cp_duty_cycle = 1000;
+		}
+	} else if((evse.calibration_state == 16) && (data->state == 17)) {
 	    evse.calibration_state = 0;
 		ads1118.cp_cal_diff_voltage = data->value;
 
-		// Set duty cycle backto 100%
+		// Set duty cycle back to 100%
 		ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 1000*64);
 		response->success = true;
 
