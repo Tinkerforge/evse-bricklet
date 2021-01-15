@@ -6,7 +6,7 @@ PORT     = 4223
 
 UID_EVSE = None
 UID_IDAI = "Mj8"
-UID_IDO4 = "HjH"
+UID_IDO4 = "QXz"
 UID_IDI4 = "QQ3"
 UID_IQR1 = "FYF"
 UID_IQR2 = "NWq"
