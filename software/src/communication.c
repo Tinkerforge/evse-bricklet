@@ -63,6 +63,7 @@ BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Respons
 	response->contactor_state          = contactor_check.state;
 	response->contactor_error          = contactor_check.error;
 	response->allowed_charging_current = iec61851_get_max_ma();
+	response->error_state              = led.state == LED_STATE_BLINKING ? led.blink_num : 0;
 	response->lock_state               = lock.state;
 	response->uptime                   = system_timer_get_ms();
 	response->time_since_state_change  = response->uptime - iec61851.last_state_change;

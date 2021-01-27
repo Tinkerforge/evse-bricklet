@@ -1,5 +1,5 @@
 /* evse-bricklet
- * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2021 Olaf Lüke <olaf@tinkerforge.com>
  *
  * communication.h: TFP protocol message handling
  *
@@ -64,6 +64,12 @@ void communication_init(void);
 #define EVSE_LOCK_STATE_OPENING 4
 #define EVSE_LOCK_STATE_ERROR 5
 
+#define EVSE_ERROR_STATE_OK 0
+#define EVSE_ERROR_STATE_SWITCH 2
+#define EVSE_ERROR_STATE_CALIBRATION 3
+#define EVSE_ERROR_STATE_CONTACTOR 4
+#define EVSE_ERROR_STATE_COMMUNICATION 5
+
 #define EVSE_JUMPER_CONFIGURATION_6A 0
 #define EVSE_JUMPER_CONFIGURATION_10A 1
 #define EVSE_JUMPER_CONFIGURATION_13A 2
@@ -116,6 +122,7 @@ typedef struct {
 	uint8_t contactor_state;
 	uint8_t contactor_error;
 	uint16_t allowed_charging_current;
+	uint8_t error_state;
 	uint8_t lock_state;
 	uint32_t time_since_state_change;
 	uint32_t uptime;
