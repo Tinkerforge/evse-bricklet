@@ -381,12 +381,17 @@ void ads1118_init(void) {
 	int16_t tmp_diff = ads1118.cp_cal_diff_voltage;
 	int16_t tmp_div  = ads1118.cp_cal_div;
 	int16_t tmp_mul  = ads1118.cp_cal_mul;
+	int16_t tmp_2700 = ads1118.cp_cal_2700ohm;
+	int16_t tmp_880[ADS1118_880OHM_CAL_NUM];
+	memcpy(tmp_880, ads1118.cp_cal_880ohm, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
 
 	memset(&ads1118, 0, sizeof(ADS1118));
 
 	ads1118.cp_cal_diff_voltage           = tmp_diff;
 	ads1118.cp_cal_div                    = tmp_div;
 	ads1118.cp_cal_mul                    = tmp_mul;
+	ads1118.cp_cal_2700ohm                = tmp_2700;
+	memcpy(ads1118.cp_cal_880ohm, tmp_880, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
 	ads1118.cp_cal_max_voltage            = 12200;  // Set some sane default values for min/max voltages.
 	ads1118.cp_cal_min_voltage            = -12250; // These will be overwritten by continuous calibration later on.
 	ads1118.moving_average_cp_adc_12v_new = true;
