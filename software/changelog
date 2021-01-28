@@ -1,2 +1,6 @@
-<unknown-date>: 2.0.0 (<unknown-sha1>)
+2021-01-05: 2.0.0 (79605c5)
 - Initial version
+
+2021-01-05: 2.0.1 (b0692c4)
+- Make sure 2700ohm and 880ohm calibration is not overwritten
+- Add error state to API
