@@ -100,6 +100,9 @@ void iec61851_set_state(IEC61851State state) {
 	}
 }
 
+// TODO: We can find out that no cable is connected here
+//       if resistance > 10000. Do we want to have a specific
+//       state for that?
 uint32_t iec61851_get_ma_from_pp_resistance(void) {
 	if(ads1118.pp_pe_resistance >= 1000) {
 		return 13000; // 13A
