@@ -4,3 +4,7 @@
 2021-01-05: 2.0.1 (b0692c4)
 - Make sure 2700ohm and 880ohm calibration is not overwritten
 - Add error state to API
+
+2021-02-08: 2.0.2 (TBD)
+- Make sure start_charging does nothing if autostart is disabled
+  and no car is connected 

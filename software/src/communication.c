@@ -191,7 +191,12 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 
 BootloaderHandleMessageResponse start_charging(const StartCharging *data) {
 	// Starting a new charge is the same as "releasing" a button press
-	button.was_pressed = false;
+
+	// If autostart is disabled we only accept a start chargin request if a car is currently connected
+	if(((iec61851.state == IEC61851_STATE_A) && !evse.charging_autostart && (ads1118.cp_pe_resistance < 10000)) || 
+	   evse.charging_autostart) {
+		button.was_pressed = false;
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
