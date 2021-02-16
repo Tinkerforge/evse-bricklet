@@ -13,5 +13,5 @@
 - Allow connected car during initial calibration
   (we just need to make sure to not activate the contactor)
 
-2021-02-16: 2.0.4 (TBD)
+2021-02-16: 2.0.4 (7f0db8f)
 - Make sure initial value for contactor check is correct
