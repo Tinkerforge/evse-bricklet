@@ -9,6 +9,6 @@
 - Make sure start_charging does nothing if autostart is disabled
   and no car is connected 
 
-2021-02-15: 2.0.3 (TBD)
+2021-02-15: 2.0.3 (54f13b1)
 - Allow connected car during initial calibration
   (we just need to make sure to not activate the contactor)
