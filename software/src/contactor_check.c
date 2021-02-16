@@ -42,6 +42,9 @@ void contactor_check_init(void) {
 
 	XMC_GPIO_Init(CONTACTOR_CHECK_AC1_PIN, &pin_config_input);
 	XMC_GPIO_Init(CONTACTOR_CHECK_AC2_PIN, &pin_config_input);
+
+	contactor_check.ac1_last_value = XMC_GPIO_GetInput(CONTACTOR_CHECK_AC1_PIN);
+	contactor_check.ac2_last_value = XMC_GPIO_GetInput(CONTACTOR_CHECK_AC2_PIN);
 }
 
 void contactor_check_tick(void) {
