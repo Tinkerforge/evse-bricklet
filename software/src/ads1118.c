@@ -392,8 +392,8 @@ void ads1118_init(void) {
 	ads1118.cp_cal_mul                    = tmp_mul;
 	ads1118.cp_cal_2700ohm                = tmp_2700;
 	memcpy(ads1118.cp_cal_880ohm, tmp_880, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
-	ads1118.cp_cal_max_voltage            = 12200;  // Set some sane default values for min/max voltages.
-	ads1118.cp_cal_min_voltage            = -12250; // These will be overwritten by continuous calibration later on.
+	ads1118.cp_cal_max_voltage            = 12193;  // Set some sane default values for min/max voltages.
+	ads1118.cp_cal_min_voltage            = -12289; // These will be overwritten by continuous calibration later on.
 	ads1118.moving_average_cp_adc_12v_new = true;
 	ads1118.moving_average_cp_new         = true;
 	ads1118.moving_average_pp_new         = true;
