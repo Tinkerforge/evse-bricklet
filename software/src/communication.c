@@ -62,6 +62,13 @@ BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Respons
 	response->iec61851_state           = iec61851.state;
 	response->contactor_state          = contactor_check.state;
 	response->contactor_error          = contactor_check.error;
+	if(!button.was_pressed && evse.charging_autostart) { // button was not pressed and autostart on
+		response->charge_release       = EVSE_CHARGE_RELEASE_AUTOMATIC;
+	} else if((button.state == BUTTON_STATE_PRESSED) || (iec61851.state >= IEC61851_STATE_D)) { // button is pressed or error state
+		response->charge_release       = EVSE_CHARGE_RELEASE_DEACTIVATED;
+	} else { // button was pressed or autostart off
+		response->charge_release       = EVSE_CHARGE_RELEASE_MANUAL;
+	}
 	response->allowed_charging_current = iec61851_get_max_ma();
 	response->error_state              = led.state == LED_STATE_BLINKING ? led.blink_num : 0;
 	response->lock_state               = lock.state;

@@ -80,6 +80,10 @@ void communication_init(void);
 #define EVSE_JUMPER_CONFIGURATION_SOFTWARE 7
 #define EVSE_JUMPER_CONFIGURATION_UNCONFIGURED 8
 
+#define EVSE_CHARGE_RELEASE_AUTOMATIC 0
+#define EVSE_CHARGE_RELEASE_MANUAL 1
+#define EVSE_CHARGE_RELEASE_DEACTIVATED 2
+
 #define EVSE_BOOTLOADER_MODE_BOOTLOADER 0
 #define EVSE_BOOTLOADER_MODE_FIRMWARE 1
 #define EVSE_BOOTLOADER_MODE_BOOTLOADER_WAIT_FOR_REBOOT 2
@@ -121,6 +125,7 @@ typedef struct {
 	uint8_t vehicle_state;
 	uint8_t contactor_state;
 	uint8_t contactor_error;
+	uint8_t charge_release;
 	uint16_t allowed_charging_current;
 	uint8_t error_state;
 	uint8_t lock_state;
