@@ -219,7 +219,11 @@ void iec61851_tick(void) {
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_B) {
 			iec61851_set_state(IEC61851_STATE_B);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_C) {
-			iec61851_set_state(IEC61851_STATE_C);
+			if(evse.managed && (evse.max_managed_current == 0)) {
+				iec61851_set_state(IEC61851_STATE_B);
+			} else {
+				iec61851_set_state(IEC61851_STATE_C);
+			}
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_D) {
 			led_set_blinking(5);
 			iec61851_set_state(IEC61851_STATE_D);
