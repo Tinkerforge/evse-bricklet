@@ -60,7 +60,9 @@ void button_tick(void) {
 	}
 
 	if(button.was_pressed) {
-		evse.max_managed_current = 0;
+		if(evse.managed) {
+			evse.max_managed_current = 0;
+		}
 	}
 }
 
