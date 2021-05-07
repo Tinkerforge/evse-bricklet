@@ -52,6 +52,9 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_STOP_CHARGING: return stop_charging(message);
 		case FID_SET_CHARGING_AUTOSTART: return set_charging_autostart(message);
 		case FID_GET_CHARGING_AUTOSTART: return get_charging_autostart(message, response);
+		case FID_GET_MANAGED: return get_managed(message, response);
+		case FID_SET_MANAGED: return set_managed(message);
+		case FID_SET_MANAGED_CURRENT: return set_managed_current(message);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -62,7 +65,9 @@ BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Respons
 	response->iec61851_state           = iec61851.state;
 	response->contactor_state          = contactor_check.state;
 	response->contactor_error          = contactor_check.error;
-	if((button.state == BUTTON_STATE_PRESSED) || (iec61851.state >= IEC61851_STATE_D)) { // button is pressed or error state
+	if(evse.managed && !button.was_pressed && ((iec61851.state == IEC61851_STATE_B) || (iec61851.state == IEC61851_STATE_C))) {
+		response->charge_release       = EVSE_CHARGE_RELEASE_MANAGED;
+	} else if((button.state == BUTTON_STATE_PRESSED) || (iec61851.state >= IEC61851_STATE_D)) { // button is pressed or error state
 		response->charge_release       = EVSE_CHARGE_RELEASE_DEACTIVATED;
 	} else if(!button.was_pressed && evse.charging_autostart) { // button was not pressed and autostart on
 		response->charge_release       = EVSE_CHARGE_RELEASE_AUTOMATIC;
@@ -131,6 +136,7 @@ BootloaderHandleMessageResponse get_max_charging_current(const GetMaxChargingCur
 	response->max_current_configured     = evse.max_current_configured;
 	response->max_current_outgoing_cable = iec61851_get_ma_from_pp_resistance();
 	response->max_current_incoming_cable = iec61851_get_ma_from_jumper();
+	response->max_current_managed        = evse.max_managed_current;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
@@ -235,6 +241,39 @@ BootloaderHandleMessageResponse get_charging_autostart(const GetChargingAutostar
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
+BootloaderHandleMessageResponse get_managed(const GetManaged *data, GetManaged_Response *response) {
+	response->header.length = sizeof(GetManaged_Response);
+	response->managed       = evse.managed;
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_managed(const SetManaged *data) {
+	if(data->managed && data->password != 0x00363702) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if(!data->managed && data->password != 0x036370FF) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if(evse.managed != data->managed) {
+		evse.max_managed_current = 0;
+	}
+
+	evse.managed = data->managed;
+	if(!evse.managed) {
+		evse.max_managed_current = 32000;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse set_managed_current(const SetManagedCurrent *data) {
+	evse.max_managed_current = data->current;
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
 
 void communication_tick(void) {
 //	communication_callback_tick();

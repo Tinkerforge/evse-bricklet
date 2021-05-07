@@ -58,6 +58,10 @@ void button_tick(void) {
 			button.was_pressed = true;
 		}
 	}
+
+	if(button.was_pressed) {
+		evse.max_managed_current = 0;
+	}
 }
 
 bool button_reset(void) {
