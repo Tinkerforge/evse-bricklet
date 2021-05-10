@@ -85,6 +85,8 @@ void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor) {
 
 // Check for presence of lock motor switch by checking between LED output and switch
 void evse_init_lock_switch(void) {
+// Remove lock switch support for now, it is not used by any WARP Charger
+#if 0
 #if LOGGING_LEVEL == LOGGING_NONE
 	// Test if there is a connection between the GP output and the motor lock switch input
 	// If there is, it means that the EVSE is configured to run without a motor lock switch input
@@ -100,6 +102,8 @@ void evse_init_lock_switch(void) {
 #else
 	evse.has_lock_switch = false;
 #endif
+#endif
+	evse.has_lock_switch = false;
 }
 
 // Check pin header for max current
