@@ -16,5 +16,10 @@
 2021-02-16: 2.0.4 (7f0db8f)
 - Make sure initial value for contactor check is correct
 
-2021-03-08: 2.0.5 ()
+2021-03-08: 2.0.5 (ebb169d)
 - Add Charge Release to GetState function
+
+2021-05-10: 2.0.6 (TBD)
+- Add support for managed mode
+- Add support for hardware version 1.5
+- Remove lock switch support
