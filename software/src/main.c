@@ -55,7 +55,7 @@ int main(void) {
 		communication_tick();
 		evse_tick();
 		ads1118_tick();
-		lock_tick();
+//		lock_tick();
 		contactor_check_tick();
 		led_tick();
 		button_tick();

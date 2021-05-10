@@ -52,12 +52,14 @@ void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor) {
 	// If the contactor is to be enabled and the lock is currently
 	// not completely closed, we start the locking procedure and return.
 	// The contactor will only be enabled after the lock is closed.
+#if 0
 	if(contactor) {
 		if(lock_get_state() != LOCK_STATE_CLOSE) {
 			lock_set_locked(true);
 			return;
 		}
 	}
+#endif
 
 	if(((bool)XMC_GPIO_GetInput(EVSE_RELAY_PIN)) != contactor) {
 		// Ignore all ADC measurements for a while if the contactor is
@@ -76,11 +78,13 @@ void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor) {
 		}
 	}
 
+#if 0
 	if(!contactor) {
 		if(lock_get_state() != LOCK_STATE_OPEN) {
 			lock_set_locked(false);
 		}
 	}
+#endif
 }
 
 // Check for presence of lock motor switch by checking between LED output and switch
