@@ -66,7 +66,7 @@ IEC61851 iec61851;
 
 void iec61851_set_state(IEC61851State state) {
 	if(state != iec61851.state) {
-		if((state == IEC61851_STATE_A ) || (state == IEC61851_STATE_B)) {
+		if((state == IEC61851_STATE_A) || (state == IEC61851_STATE_B)) {
 			// Turn LED on with timer for standby if we have a state change to state A or B
 			led_set_on();
 		}
