@@ -400,6 +400,11 @@ uint32_t ads1118_task_fast_find_version(uint32_t configure_time) {
 		const uint16_t in1_vs_gnd = (miso[1] | (miso[0] << 8));
 		ads1118.is_v15            = in1_vs_gnd > 128;
 		ads1118.version_found     = true;
+
+		// Invalidate the next measurement on both channels,
+		// to make sure that this can't be mixed up with the version test measurements
+		ads1118.pp_invalid_counter = MAX(ads1118.cp_invalid_counter, 1);
+		ads1118.cp_invalid_counter = MAX(ads1118.cp_invalid_counter, 1);
 	}
 
 	return configure_time;
