@@ -19,7 +19,7 @@
 2021-03-08: 2.0.5 (ebb169d)
 - Add Charge Release to GetState function
 
-2021-05-10: 2.0.6 (TBD)
+2021-05-10: 2.0.6 (db729ae)
 - Add support for managed mode
 - Add support for hardware version 1.5
 - Remove lock switch support
