@@ -87,11 +87,26 @@ uint8_t *ads1118_get_config_for_mosi(const uint8_t channel, const bool normal) {
 	} else { // fast loop
 		config = /* continous mode */                                     ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_32SPS | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
 	}
-	switch(channel) {
-		case 0: config |= ADS1118_CONFIG_INP_IS_IN0_AND_INN_IS_IN3; break;
-		case 1: config |= ADS1118_CONFIG_INP_IS_IN2_AND_INN_IS_IN3; break;
-		case 2: config |= ADS1118_CONFIG_TEMPERATURE_MODE;          break;
-		default: break;
+
+	if(channel == 3) { 
+		// We use channel 3 for version testing, version testing is done be measuring between IN1 and GND
+		config |= ADS1118_CONFIG_INP_IS_IN1_AND_INN_IS_GND;
+	} else {
+		if(ads1118.is_v15) {
+			switch(channel) {
+				case 0: config |= ADS1118_CONFIG_INP_IS_IN1_AND_INN_IS_GND; break;
+				case 1: config |= ADS1118_CONFIG_INP_IS_IN2_AND_INN_IS_IN3; break;
+				case 2: config |= ADS1118_CONFIG_TEMPERATURE_MODE;          break;
+				default: break;
+			}
+		} else {
+			switch(channel) {
+				case 0: config |= ADS1118_CONFIG_INP_IS_IN0_AND_INN_IS_IN3; break;
+				case 1: config |= ADS1118_CONFIG_INP_IS_IN2_AND_INN_IS_IN3; break;
+				case 2: config |= ADS1118_CONFIG_TEMPERATURE_MODE;          break;
+				default: break;
+			}
+		}
 	}
 
 	mosi[0] = (config >> 8) & 0xFF;
@@ -345,6 +360,51 @@ uint32_t ads1118_task_fast_loop(uint32_t configure_time) {
 	return configure_time;
 }
 
+uint32_t ads1118_task_fast_find_version(uint32_t configure_time) {
+	const XMC_GPIO_CONFIG_t config_low = {
+		.mode         = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
+		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
+	};
+
+	const XMC_GPIO_CONFIG_t config_select = {
+		.mode         = ADS1118_SELECT_PIN_MODE,
+		.output_level = XMC_GPIO_OUTPUT_LEVEL_LOW,
+	};
+
+	uint8_t miso[2] = {0, 0};
+
+	// Wait for DRDY
+	coop_task_sleep_ms(1);
+	XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+
+	configure_time = system_timer_get_ms();
+	while(XMC_GPIO_GetInput(ADS1118_MISO_PORT, ADS1118_MISO_PIN)) {
+		if(system_timer_is_time_elapsed_ms(configure_time, ADS1118_CONFIGURE_TIMEOUT)) {
+			XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+			spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(3, true), miso);
+			XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_low);
+			configure_time = system_timer_get_ms();
+		}
+		coop_task_yield();
+	}
+	XMC_GPIO_Init(ADS1118_SELECT_PORT, ADS1118_SELECT_PIN, &config_select);
+
+	// Read / Configure CP
+	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(3, true), miso);
+	if(ads1118.cp_invalid_counter > 0) {
+		ads1118.cp_invalid_counter--;
+	} else {
+		// To find out if the EVSE is hardware version 1.5 we measure between IN1 und GND.
+		// In version 1.4 and lower in1 is connected to GND and we will measure something near 0.
+		// In version 1.5 in1 is used for the CP/PE measurement and we expect a value > 0.
+		const uint16_t in1_vs_gnd = (miso[1] | (miso[0] << 8));
+		ads1118.is_v15            = in1_vs_gnd > 128;
+		ads1118.version_found     = true;
+	}
+
+	return configure_time;
+}
+
 void ads1118_task_tick(void) {
 	uint8_t miso[2] = {0, 0};
 
@@ -365,11 +425,14 @@ void ads1118_task_tick(void) {
 		// The voltage between PP/PE is ignored (the cable obviously can't be
 		// changed out while a car is charging, so it is save to ignore the
 		// PP/PE voltage while in state C).
-
-		if(XMC_GPIO_GetInput(EVSE_RELAY_PIN)) {
-			configure_time = ads1118_task_fast_loop(configure_time);
+		if(ads1118.version_found) {
+			if(XMC_GPIO_GetInput(EVSE_RELAY_PIN)) {
+				configure_time = ads1118_task_fast_loop(configure_time);
+			} else {
+				configure_time = ads1118_task_normal_loop(configure_time);
+			}
 		} else {
-			configure_time = ads1118_task_normal_loop(configure_time);
+			configure_time = ads1118_task_fast_find_version(configure_time);
 		}
 
 		coop_task_yield();
@@ -397,6 +460,7 @@ void ads1118_init(void) {
 	ads1118.moving_average_cp_adc_12v_new = true;
 	ads1118.moving_average_cp_new         = true;
 	ads1118.moving_average_pp_new         = true;
+	ads1118.is_v15                        = true;
 
 	ads1118_init_spi();
 	coop_task_init(&ads1118_task, ads1118_task_tick);

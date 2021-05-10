@@ -66,6 +66,9 @@ typedef struct {
     bool moving_average_cp_adc_12v_new;
     bool moving_average_cp_new;
     bool moving_average_pp_new;
+
+    bool version_found;
+    bool is_v15;
 } ADS1118;
 
 extern ADS1118 ads1118;
