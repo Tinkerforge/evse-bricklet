@@ -408,8 +408,8 @@ uint32_t ads1118_task_fast_find_version(uint32_t configure_time) {
 void ads1118_task_tick(void) {
 	uint8_t miso[2] = {0, 0};
 
-	// Configure CP
-	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(0, true), miso);
+	// Configure for find version
+	spi_fifo_coop_transceive(&ads1118.spi_fifo, 2, ads1118_get_config_for_mosi(3, true), miso);
 
 	uint32_t configure_time = 0;
 
@@ -460,7 +460,6 @@ void ads1118_init(void) {
 	ads1118.moving_average_cp_adc_12v_new = true;
 	ads1118.moving_average_cp_new         = true;
 	ads1118.moving_average_pp_new         = true;
-	ads1118.is_v15                        = true;
 
 	ads1118_init_spi();
 	coop_task_init(&ads1118_task, ads1118_task_tick);
