@@ -91,6 +91,7 @@ typedef struct {
 extern EVSE evse;
 
 void evse_save_calibration(void);
+void evse_save_user_calibration(void);
 void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor);
 void evse_init(void);
 void evse_tick(void);

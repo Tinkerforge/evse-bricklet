@@ -334,6 +334,7 @@ BootloaderHandleMessageResponse set_user_calibration(const SetUserCalibration *d
 			ads1118.cp_user_cal_880ohm[i] = 0;
 		}
 	}
+	evse_save_user_calibration();
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
