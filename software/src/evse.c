@@ -232,6 +232,57 @@ void evse_save_calibration(void) {
 	bootloader_write_eeprom_page(EVSE_CALIBRATION_PAGE, page);
 }
 
+void evse_load_user_calibration(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
+	bootloader_read_eeprom_page(EVSE_USER_CALIBRATION_PAGE, page);
+
+	// The magic number is not where it is supposed to be.
+	// This is either our first startup or something went wrong.
+	// We initialize the calibration data with sane default values and start a calibration.
+	if(page[0] != EVSE_USER_CALIBRATION_MAGIC) {
+		ads1118.cp_user_cal_active        = false;
+		ads1118.cp_user_cal_mul           = 1;
+		ads1118.cp_user_cal_div           = 1;
+		ads1118.cp_user_cal_diff_voltage  = -90; // -90 seems to be around average between all EVSEs we have tested, so we use it as default
+		ads1118.cp_user_cal_2700ohm       = 0;
+		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+			ads1118.cp_user_cal_880ohm[i] = 0;
+		}
+	} else {
+		ads1118.cp_user_cal_active        = page[EVSE_USER_CALIBRATION_ACTIV_POS];
+		ads1118.cp_user_cal_mul           = page[EVSE_USER_CALIBRATION_MUL_POS]     - INT16_MAX;
+		ads1118.cp_user_cal_div           = page[EVSE_USER_CALIBRATION_DIV_POS]     - INT16_MAX;
+		ads1118.cp_user_cal_diff_voltage  = page[EVSE_USER_CALIBRATION_DIFF_POS]    - INT16_MAX;
+		ads1118.cp_user_cal_2700ohm       = page[EVSE_USER_CALIBRATION_2700_POS]    - INT16_MAX;
+		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+			ads1118.cp_user_cal_880ohm[i] = page[EVSE_USER_CALIBRATION_880_POS + i] - INT16_MAX;
+		}
+	}
+
+	logd("Load user calibration:\n\r", ads1118.cp_user_cal_mul, ads1118.cp_user_cal_div, ads1118.cp_user_cal_diff_voltage);
+	logd(" * mul %d, div %d, diff %d\n\r", ads1118.cp_user_cal_mul, ads1118.cp_user_cal_div, ads1118.cp_user_cal_diff_voltage);
+	logd(" * 2700 Ohm: %d\n\r", ads1118.cp_user_cal_2700ohm);
+	for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+		logd(" * 800 Ohm %d: %d\n\r", i, ads1118.cp_user_cal_880ohm[i]);
+	}
+}
+
+void evse_save_user_calibration(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
+
+	page[EVSE_USER_CALIBRATION_MAGIC_POS]       = EVSE_USER_CALIBRATION_MAGIC;
+	page[EVSE_USER_CALIBRATION_ACTIV_POS]       = ads1118.cp_user_cal_active;
+	page[EVSE_USER_CALIBRATION_MUL_POS]         = ads1118.cp_user_cal_mul          + INT16_MAX;
+	page[EVSE_USER_CALIBRATION_DIV_POS]         = ads1118.cp_user_cal_div          + INT16_MAX;
+	page[EVSE_USER_CALIBRATION_DIFF_POS]        = ads1118.cp_user_cal_diff_voltage + INT16_MAX;
+	page[EVSE_USER_CALIBRATION_2700_POS]        = ads1118.cp_user_cal_2700ohm      + INT16_MAX;
+	for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+		page[EVSE_USER_CALIBRATION_880_POS + i] = ads1118.cp_user_cal_880ohm[i]    + INT16_MAX;
+	}
+
+	bootloader_write_eeprom_page(EVSE_USER_CALIBRATION_PAGE, page);
+}
+
 void evse_init(void) {
 	const XMC_GPIO_CONFIG_t pin_config_output = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
@@ -265,6 +316,7 @@ void evse_init(void) {
 	evse.charging_autostart = true;
 
 	evse_load_calibration();
+	evse_load_user_calibration();
 	evse_init_jumper();
 	evse_init_lock_switch();
 

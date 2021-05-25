@@ -55,6 +55,8 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_GET_MANAGED: return get_managed(message, response);
 		case FID_SET_MANAGED: return set_managed(message);
 		case FID_SET_MANAGED_CURRENT: return set_managed_current(message);
+		case FID_GET_USER_CALIBRATION: return get_user_calibration(message, response);
+		case FID_SET_USER_CALIBRATION: return set_user_calibration(message);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -274,6 +276,68 @@ BootloaderHandleMessageResponse set_managed_current(const SetManagedCurrent *dat
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
+
+BootloaderHandleMessageResponse get_user_calibration(const GetUserCalibration *data, GetUserCalibration_Response *response) {
+	response->header.length           = sizeof(GetUserCalibration_Response);
+	response->user_calibration_active = ads1118.cp_user_cal_active;
+
+	if(ads1118.cp_user_cal_active) {
+		response->voltage_mul     = ads1118.cp_user_cal_mul;
+		response->voltage_div     = ads1118.cp_user_cal_div;
+		response->voltage_diff    = ads1118.cp_user_cal_diff_voltage;
+		response->resistance_2700 = ads1118.cp_user_cal_2700ohm;
+
+		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+			response->resistance_880[i] = ads1118.cp_user_cal_880ohm[i];
+		}
+	} else {
+		response->voltage_mul     = ads1118.cp_cal_mul;
+		response->voltage_div     = ads1118.cp_cal_div;
+		response->voltage_diff    = ads1118.cp_cal_diff_voltage;
+		response->resistance_2700 = ads1118.cp_cal_2700ohm;
+
+		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+			response->resistance_880[i] = ads1118.cp_cal_880ohm[i];
+		}
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_user_calibration(const SetUserCalibration *data) {
+	if(data->password != 0xCA11B4A0) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	if(data->user_calibration_active) {
+		if(data->voltage_div == 0) {
+			return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+		}
+
+		ads1118.cp_user_cal_active       = true;
+		ads1118.cp_user_cal_mul          = data->voltage_mul;
+		ads1118.cp_user_cal_div          = data->voltage_div;
+		ads1118.cp_user_cal_diff_voltage = data->voltage_diff;
+		ads1118.cp_user_cal_2700ohm      = data->resistance_2700;
+
+		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+			ads1118.cp_user_cal_880ohm[i] = data->resistance_880[i];
+		}
+	} else {
+		ads1118.cp_user_cal_active       = false;
+		ads1118.cp_user_cal_mul          = 1;
+		ads1118.cp_user_cal_div          = 1;
+		ads1118.cp_user_cal_diff_voltage = -90;
+		ads1118.cp_user_cal_2700ohm      = 0;
+
+		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
+			ads1118.cp_user_cal_880ohm[i] = 0;
+		}
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
 
 void communication_tick(void) {
 //	communication_callback_tick();

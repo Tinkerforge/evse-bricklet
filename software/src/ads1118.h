@@ -46,6 +46,14 @@ typedef struct {
     int16_t  cp_cal_div;          // Calibration done during flash/test through API
     int16_t  cp_cal_2700ohm;      // Calibration done during flash/test through API
     int16_t  cp_cal_880ohm[ADS1118_880OHM_CAL_NUM]; // Calibration done during flash/test through API
+
+    bool     cp_user_cal_active;
+    int16_t  cp_user_cal_diff_voltage; // Calibration done by user through API
+    int16_t  cp_user_cal_mul;          // Calibration done by user through API
+    int16_t  cp_user_cal_div;          // Calibration done by user through API
+    int16_t  cp_user_cal_2700ohm;      // Calibration done by user through API
+    int16_t  cp_user_cal_880ohm[ADS1118_880OHM_CAL_NUM]; // Calibration done by user through API
+
     uint8_t  cp_invalid_counter;
 
     uint16_t pp_adc_value;

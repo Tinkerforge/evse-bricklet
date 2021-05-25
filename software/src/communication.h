@@ -117,6 +117,8 @@ void communication_init(void);
 #define FID_GET_MANAGED 11
 #define FID_SET_MANAGED 12
 #define FID_SET_MANAGED_CURRENT 13
+#define FID_GET_USER_CALIBRATION 14
+#define FID_SET_USER_CALIBRATION 15
 
 
 typedef struct {
@@ -233,6 +235,31 @@ typedef struct {
 	uint16_t current;
 } __attribute__((__packed__)) SetManagedCurrent;
 
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetUserCalibration;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool user_calibration_active;
+	int16_t voltage_diff;
+	int16_t voltage_mul;
+	int16_t voltage_div;
+	int16_t resistance_2700;
+	int16_t resistance_880[14];
+} __attribute__((__packed__)) GetUserCalibration_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint32_t password;
+	bool user_calibration_active;
+	int16_t voltage_diff;
+	int16_t voltage_mul;
+	int16_t voltage_div;
+	int16_t resistance_2700;
+	int16_t resistance_880[14];
+} __attribute__((__packed__)) SetUserCalibration;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
@@ -248,6 +275,8 @@ BootloaderHandleMessageResponse get_charging_autostart(const GetChargingAutostar
 BootloaderHandleMessageResponse get_managed(const GetManaged *data, GetManaged_Response *response);
 BootloaderHandleMessageResponse set_managed(const SetManaged *data);
 BootloaderHandleMessageResponse set_managed_current(const SetManagedCurrent *data);
+BootloaderHandleMessageResponse get_user_calibration(const GetUserCalibration *data, GetUserCalibration_Response *response);
+BootloaderHandleMessageResponse set_user_calibration(const SetUserCalibration *data);
 
 // Callbacks
 

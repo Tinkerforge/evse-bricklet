@@ -176,10 +176,18 @@ void ads1118_cp_handle_continuous_calibration(const uint16_t adc_value) {
 		int16_t voltage = SCALE(adc_max_value_avg, 6574, 31643, -12000, 12000);
 
 		// Apply additional ADC calibration
-		ads1118.cp_cal_max_voltage = voltage * ads1118.cp_cal_mul / ads1118.cp_cal_div;
+		if(ads1118.cp_user_cal_active) {
+			ads1118.cp_cal_max_voltage = voltage * ads1118.cp_user_cal_mul / ads1118.cp_user_cal_div;
+		} else {
+			ads1118.cp_cal_max_voltage = voltage * ads1118.cp_cal_mul / ads1118.cp_cal_div;
+		}
 
 		// For the min voltage we use a fixed difference that is calibrated on intial flashing
-		ads1118.cp_cal_min_voltage = -ads1118.cp_cal_max_voltage + ads1118.cp_cal_diff_voltage;
+		if(ads1118.cp_user_cal_active) {
+			ads1118.cp_cal_min_voltage = -ads1118.cp_cal_max_voltage + ads1118.cp_user_cal_diff_voltage;
+		} else {
+			ads1118.cp_cal_min_voltage = -ads1118.cp_cal_max_voltage + ads1118.cp_cal_diff_voltage;
+		}
 	}
 }
 
@@ -199,9 +207,13 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	// 31643 LSB =>  12V
 	
 	ads1118.cp_voltage = SCALE(ads1118.cp_adc_value, 6574, 31643, -12000, 12000);
-	ads1118.cp_voltage_calibrated = ads1118.cp_voltage * ads1118.cp_cal_mul / ads1118.cp_cal_div;
-
+	if(ads1118.cp_user_cal_active) {
+		ads1118.cp_voltage_calibrated = ads1118.cp_voltage * ads1118.cp_user_cal_mul / ads1118.cp_user_cal_div;
+	} else {
+		ads1118.cp_voltage_calibrated = ads1118.cp_voltage * ads1118.cp_cal_mul / ads1118.cp_cal_div;
+	}
 	ads1118.cp_high_voltage = (ads1118.cp_voltage_calibrated - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;
+
 
 	uint32_t new_resistance;
 	// If the measured high voltage is near the calibration max voltage
@@ -213,11 +225,19 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 		// diode voltage drop 650mV (value is educated guess)
 		// voltage drop of opamp under with 880 ohm load: 617mV
 		if(evse.low_level_cp_duty_cycle == 1000) { // w/o PWM
-			new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_2700ohm) - ads1118.cp_high_voltage);
+			if(ads1118.cp_user_cal_active) {
+				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_2700ohm) - ads1118.cp_high_voltage);
+			} else {
+				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_2700ohm) - ads1118.cp_high_voltage);
+			}
 		} else { // w/ PWM
 			uint32_t ma = iec61851_get_max_ma();
 			uint32_t index = SCALE(ma, 6000, 32000, 0, ADS1118_880OHM_CAL_NUM-1);
-			new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_880ohm[index])  - ads1118.cp_high_voltage);
+			if(ads1118.cp_user_cal_active) {
+				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_880ohm[index])  - ads1118.cp_high_voltage);
+			} else {
+				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_880ohm[index])  - ads1118.cp_high_voltage);
+			}
 		}
 	}
 
@@ -453,6 +473,13 @@ void ads1118_init(void) {
 	int16_t tmp_880[ADS1118_880OHM_CAL_NUM];
 	memcpy(tmp_880, ads1118.cp_cal_880ohm, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
 
+	int16_t tmp_user_diff = ads1118.cp_user_cal_diff_voltage;
+	int16_t tmp_user_div  = ads1118.cp_user_cal_div;
+	int16_t tmp_user_mul  = ads1118.cp_user_cal_mul;
+	int16_t tmp_user_2700 = ads1118.cp_user_cal_2700ohm;
+	int16_t tmp_user_880[ADS1118_880OHM_CAL_NUM];
+	memcpy(tmp_user_880, ads1118.cp_user_cal_880ohm, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
+
 	memset(&ads1118, 0, sizeof(ADS1118));
 
 	ads1118.cp_cal_diff_voltage           = tmp_diff;
@@ -460,6 +487,13 @@ void ads1118_init(void) {
 	ads1118.cp_cal_mul                    = tmp_mul;
 	ads1118.cp_cal_2700ohm                = tmp_2700;
 	memcpy(ads1118.cp_cal_880ohm, tmp_880, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
+
+	ads1118.cp_user_cal_diff_voltage      = tmp_user_diff;
+	ads1118.cp_user_cal_div               = tmp_user_div;
+	ads1118.cp_user_cal_mul               = tmp_user_mul;
+	ads1118.cp_user_cal_2700ohm           = tmp_user_2700;
+	memcpy(ads1118.cp_user_cal_880ohm, tmp_user_880, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
+
 	ads1118.cp_cal_max_voltage            = 12193;  // Set some sane default values for min/max voltages.
 	ads1118.cp_cal_min_voltage            = -12289; // These will be overwritten by continuous calibration later on.
 	ads1118.moving_average_cp_adc_12v_new = true;
