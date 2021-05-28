@@ -283,6 +283,32 @@ void evse_save_user_calibration(void) {
 	bootloader_write_eeprom_page(EVSE_USER_CALIBRATION_PAGE, page);
 }
 
+void evse_load_config(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
+	bootloader_read_eeprom_page(EVSE_CONFIG_PAGE, page);
+
+	// The magic number is not where it is supposed to be.
+	// This is either our first startup or something went wrong.
+	// We initialize the config data with sane default values.
+	if(page[EVSE_CONFIG_MAGIC_POS] != EVSE_CONFIG_MAGIC) {
+		evse.managed = false;
+	} else {
+		evse.managed = page[EVSE_CONFIG_MANAGED_POS];
+	}
+
+	logd("Load config:\n\r");
+	logd(" * managed %d\n\r", evse.managed);
+}
+
+void evse_save_config(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
+
+	page[EVSE_CONFIG_MAGIC_POS]   = EVSE_CALIBRATION_MAGIC;
+	page[EVSE_CONFIG_MANAGED_POS] = evse.managed;
+
+	bootloader_write_eeprom_page(EVSE_CONFIG_PAGE, page);
+}
+
 void evse_init(void) {
 	const XMC_GPIO_CONFIG_t pin_config_output = {
 		.mode             = XMC_GPIO_MODE_OUTPUT_PUSH_PULL,
@@ -317,6 +343,7 @@ void evse_init(void) {
 
 	evse_load_calibration();
 	evse_load_user_calibration();
+	evse_load_config();
 	evse_init_jumper();
 	evse_init_lock_switch();
 

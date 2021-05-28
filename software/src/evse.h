@@ -59,6 +59,12 @@
 
 #define EVSE_USER_CALIBRATION_MAGIC     0x23456789
 
+#define EVSE_CONFIG_PAGE                3
+#define EVSE_CONFIG_MAGIC_POS           0
+#define EVSE_CONFIG_MANAGED_POS         1
+
+#define EVSE_CONFIG_MAGIC               0x34567890
+
 typedef struct {
 	bool     low_level_mode_enabled;
 	uint16_t low_level_cp_duty_cycle;
@@ -92,6 +98,7 @@ extern EVSE evse;
 
 void evse_save_calibration(void);
 void evse_save_user_calibration(void);
+void evse_save_config(void);
 void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor);
 void evse_init(void);
 void evse_tick(void);

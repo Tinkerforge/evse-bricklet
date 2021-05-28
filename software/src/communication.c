@@ -268,6 +268,8 @@ BootloaderHandleMessageResponse set_managed(const SetManaged *data) {
 		evse.max_managed_current = 32000;
 	}
 
+	evse_save_config();
+
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
 
