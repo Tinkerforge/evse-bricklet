@@ -215,10 +215,21 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	ads1118.cp_high_voltage = (ads1118.cp_voltage_calibrated - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;
 
 
-	uint32_t new_resistance;
 	// If the measured high voltage is near the calibration max voltage
 	// we assume that there is no resistance
-	if(ABS(ads1118.cp_high_voltage - ads1118.cp_cal_max_voltage) < 1000) {
+	uint32_t new_resistance;
+
+	// When an ID.3 is connected to the WARP charger and the duty cycle is already
+	// below 100% (the wallbox is ready) but the contactor is not yet activated, the
+	// ID.3 somtimes generates a spike in the resistance that we measure when it
+	// engages the resistor to apply 880 ohm between CP/PE. We have not seen this in
+	// other cars, we assume this is some kind of capacitive effect. To make sure
+	// that we don't cancel the charging here, we increase the "infinite resistance"
+	// threshold for this scenario.
+	const bool id3_mode = (evse.low_level_cp_duty_cycle != 1000) && !XMC_GPIO_GetInput(EVSE_RELAY_PIN);
+	if(id3_mode && (ads1118.cp_high_voltage + 500 > ads1118.cp_cal_max_voltage)) {
+		new_resistance = 0xFFFF;
+	} else if(!id3_mode && (ads1118.cp_high_voltage + 1000 > ads1118.cp_cal_max_voltage)) {
 		new_resistance = 0xFFFF;
 	} else {
 		// resistance divider, 910 ohm on EVSE

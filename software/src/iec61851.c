@@ -214,7 +214,17 @@ void iec61851_tick(void) {
 			return;
 		}
 
-		if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A) {
+		// When an ID.3 is connected to the WARP charger and the duty cycle is already
+		// below 100% (the wallbox is ready) but the contactor is not yet activated, the
+		// ID.3 somtimes generates a spike in the resistance that we measure when it
+		// engages the resistor to apply 880 ohm between CP/PE. We have not seen this in
+		// other cars, we assume this is some kind of capacitive effect. To make sure
+		// that we don't cancel the charging here, we increase the STATE A threshold for
+		// this scenario.
+		const bool id3_mode = (evse.low_level_cp_duty_cycle != 1000) && !XMC_GPIO_GetInput(EVSE_RELAY_PIN);
+		if(id3_mode && (ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A*3)) {
+			iec61851_set_state(IEC61851_STATE_A);
+		} else if(!id3_mode && (ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A)) {
 			iec61851_set_state(IEC61851_STATE_A);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_B) {
 			iec61851_set_state(IEC61851_STATE_B);
