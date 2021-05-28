@@ -191,7 +191,7 @@ void evse_load_calibration(void) {
 	// The magic number is not where it is supposed to be.
 	// This is either our first startup or something went wrong.
 	// We initialize the calibration data with sane default values and start a calibration.
-	if(page[0] != EVSE_CALIBRATION_MAGIC) {
+	if(page[EVSE_CALIBRATION_MAGIC_POS] != EVSE_CALIBRATION_MAGIC) {
 		ads1118.cp_cal_mul           = 1;
 		ads1118.cp_cal_div           = 1;
 		ads1118.cp_cal_diff_voltage  = -90; // -90 seems to be around average between all EVSEs we have tested, so we use it as default
@@ -239,7 +239,7 @@ void evse_load_user_calibration(void) {
 	// The magic number is not where it is supposed to be.
 	// This is either our first startup or something went wrong.
 	// We initialize the calibration data with sane default values and start a calibration.
-	if(page[0] != EVSE_USER_CALIBRATION_MAGIC) {
+	if(page[EVSE_USER_CALIBRATION_MAGIC_POS] != EVSE_USER_CALIBRATION_MAGIC) {
 		ads1118.cp_user_cal_active        = false;
 		ads1118.cp_user_cal_mul           = 1;
 		ads1118.cp_user_cal_div           = 1;
