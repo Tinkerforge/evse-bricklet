@@ -209,7 +209,7 @@ void evse_load_calibration(void) {
 		}
 	}
 
-	logd("Load calibration:\n\r", ads1118.cp_cal_mul, ads1118.cp_cal_div, ads1118.cp_cal_diff_voltage);
+	logd("Load calibration:\n\r");
 	logd(" * mul %d, div %d, diff %d\n\r", ads1118.cp_cal_mul, ads1118.cp_cal_div, ads1118.cp_cal_diff_voltage);
 	logd(" * 2700 Ohm: %d\n\r", ads1118.cp_cal_2700ohm);
 	for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
@@ -259,7 +259,7 @@ void evse_load_user_calibration(void) {
 		}
 	}
 
-	logd("Load user calibration:\n\r", ads1118.cp_user_cal_mul, ads1118.cp_user_cal_div, ads1118.cp_user_cal_diff_voltage);
+	logd("Load user calibration:\n\r");
 	logd(" * mul %d, div %d, diff %d\n\r", ads1118.cp_user_cal_mul, ads1118.cp_user_cal_div, ads1118.cp_user_cal_diff_voltage);
 	logd(" * 2700 Ohm: %d\n\r", ads1118.cp_user_cal_2700ohm);
 	for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
