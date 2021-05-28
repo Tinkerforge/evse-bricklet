@@ -484,6 +484,7 @@ void ads1118_init(void) {
 	int16_t tmp_880[ADS1118_880OHM_CAL_NUM];
 	memcpy(tmp_880, ads1118.cp_cal_880ohm, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
 
+	bool tmp_user_active  = ads1118.cp_user_cal_active;
 	int16_t tmp_user_diff = ads1118.cp_user_cal_diff_voltage;
 	int16_t tmp_user_div  = ads1118.cp_user_cal_div;
 	int16_t tmp_user_mul  = ads1118.cp_user_cal_mul;
@@ -499,6 +500,7 @@ void ads1118_init(void) {
 	ads1118.cp_cal_2700ohm                = tmp_2700;
 	memcpy(ads1118.cp_cal_880ohm, tmp_880, ADS1118_880OHM_CAL_NUM*sizeof(int16_t));
 
+	ads1118.cp_user_cal_active            = tmp_user_active;
 	ads1118.cp_user_cal_diff_voltage      = tmp_user_diff;
 	ads1118.cp_user_cal_div               = tmp_user_div;
 	ads1118.cp_user_cal_mul               = tmp_user_mul;
