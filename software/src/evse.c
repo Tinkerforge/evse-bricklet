@@ -350,25 +350,6 @@ void evse_init(void) {
 	evse.startup_time = system_timer_get_ms();
 }
 
-#if EVSE_LOW_LEVEL_MODE
-void evse_tick_low_level(void) {
-	ccu4_pwm_set_duty_cycle(EVSE_MOTOR_ENABLE_SLICE_NUMBER, 6400 - evse.low_level_motor_duty_cycle*64/10);
-
-	if(evse.low_level_motor_direction) {
-		XMC_GPIO_SetOutputHigh(EVSE_MOTOR_PHASE_PIN);
-	} else {
-		XMC_GPIO_SetOutputLow(EVSE_MOTOR_PHASE_PIN);
-	}
-
-	if((evse.low_level_relay_monoflop != 0) && system_timer_is_time_elapsed_ms(evse.low_level_relay_monoflop, EVSE_RELAY_MONOFLOP_TIME)) {
-		evse.low_level_relay_enabled  = false;
-		evse.low_level_relay_monoflop = 0;
-	}
-
-	evse_set_output(evse.low_level_cp_duty_cycle, evse.low_level_relay_enabled);
-}
-#endif
-
 void evse_tick_debug(void) {
 #if LOGGING_LEVEL != LOGGING_NONE
 	static uint32_t debug_time = 0;
@@ -412,16 +393,7 @@ void evse_tick(void) {
 		// Nothing here
 		// calibration is done externally through API.
 		// We don't change anything while calibration is running
-	}
-#ifdef EVSE_LOW_LEVEL_MODE
-	else if(evse.low_level_mode_enabled) {
-
-		// If low level mode is enabled,
-		// everything is handled through the low level API.
-		evse_tick_low_level();
-	} 
-#endif
-	else if((evse.config_jumper_current == EVSE_CONFIG_JUMPER_SOFTWARE) || (evse.config_jumper_current == EVSE_CONFIG_JUMPER_UNCONFIGURED)) {
+	} else if((evse.config_jumper_current == EVSE_CONFIG_JUMPER_SOFTWARE) || (evse.config_jumper_current == EVSE_CONFIG_JUMPER_UNCONFIGURED)) {
 		led_set_blinking(2);
 	} else if(evse.calibration_error) {
 		led_set_blinking(3);

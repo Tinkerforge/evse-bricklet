@@ -66,13 +66,6 @@
 #define EVSE_CONFIG_MAGIC               0x34567890
 
 typedef struct {
-	bool     low_level_mode_enabled;
-	uint16_t low_level_cp_duty_cycle;
-	bool     low_level_motor_direction;
-	uint16_t low_level_motor_duty_cycle;
-	uint16_t low_level_relay_enabled;
-    uint32_t low_level_relay_monoflop;
-
     uint32_t startup_time;
 
 	uint8_t config_jumper_current;

@@ -111,7 +111,7 @@ BootloaderHandleMessageResponse get_hardware_configuration(const GetHardwareConf
 
 BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data, GetLowLevelState_Response *response) {
 	response->header.length          = sizeof(GetLowLevelState_Response);
-	response->low_level_mode_enabled = evse.low_level_mode_enabled;
+	response->low_level_mode_enabled = false; // We completely removed low-level mode, this is always false
 	response->led_state              = led.state;
 	response->cp_pwm_duty_cycle      = (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
 	response->adc_values[0]          = ads1118.cp_adc_value;
@@ -168,7 +168,6 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 
 		uint16_t dc = iec61851_get_duty_cycle_for_ma(6000);
 		ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - dc*64);
-		evse.low_level_cp_duty_cycle = dc;
 	} else if((evse.calibration_state >= 2) && (evse.calibration_state <= 15) && (data->state == (evse.calibration_state + 1))) {
 		ads1118.cp_cal_880ohm[evse.calibration_state-2] = ads1118.cp_cal_max_voltage - (910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP) + 880*ads1118.cp_high_voltage)/880;
 
@@ -179,11 +178,9 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 		if(evse.calibration_state < 16) {
 			uint16_t dc = iec61851_get_duty_cycle_for_ma(6000 + (evse.calibration_state-2)*2000);
 			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - dc*64);	
-			evse.low_level_cp_duty_cycle = dc;
 		} else if(evse.calibration_state == 16) {
 			// Set duty cycle to 0%
 			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 0*64);
-			evse.low_level_cp_duty_cycle = 1000;
 		}
 	} else if((evse.calibration_state == 16) && (data->state == 17)) {
 	    evse.calibration_state = 0;
