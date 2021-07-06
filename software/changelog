@@ -28,7 +28,7 @@
 - Add user calibration support
 - Add special handling for ID.3
 
-2021-07-07: 2.0.8 (6c02126)
+2021-07-07: 2.0.8 (3250325)
 - Remove unused low-level-mode
 - Fix erroneous initialization of cp_duty_cycle
 - Use the correct magic number for managed configuration
