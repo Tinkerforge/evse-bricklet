@@ -434,7 +434,7 @@ uint32_t ads1118_task_fast_find_version(uint32_t configure_time) {
 
 		// Invalidate the next measurement on both channels,
 		// to make sure that this can't be mixed up with the version test measurements
-		ads1118.pp_invalid_counter = MAX(ads1118.cp_invalid_counter, 1);
+		ads1118.pp_invalid_counter = MAX(ads1118.pp_invalid_counter, 1);
 		ads1118.cp_invalid_counter = MAX(ads1118.cp_invalid_counter, 1);
 	}
 
