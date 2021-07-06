@@ -295,7 +295,7 @@ void evse_load_config(void) {
 void evse_save_config(void) {
 	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
 
-	page[EVSE_CONFIG_MAGIC_POS]   = EVSE_CALIBRATION_MAGIC;
+	page[EVSE_CONFIG_MAGIC_POS]   = EVSE_CONFIG_MAGIC;
 	page[EVSE_CONFIG_MANAGED_POS] = evse.managed;
 
 	bootloader_write_eeprom_page(EVSE_CONFIG_PAGE, page);
