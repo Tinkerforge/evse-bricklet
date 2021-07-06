@@ -33,5 +33,5 @@
 - Fix erroneous initialization of cp_duty_cycle
 - Use the correct magic number for managed configuration
 
-2021-07-06: 2.0.9 (TBD)
+2021-07-06: 2.0.9 (1a9dece)
 - Ignore glitches in contactor check
