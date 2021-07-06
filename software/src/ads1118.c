@@ -212,7 +212,8 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	} else {
 		ads1118.cp_voltage_calibrated = ads1118.cp_voltage * ads1118.cp_cal_mul / ads1118.cp_cal_div;
 	}
-	ads1118.cp_high_voltage = (ads1118.cp_voltage_calibrated - ads1118.cp_cal_min_voltage)*1000/evse.low_level_cp_duty_cycle + ads1118.cp_cal_min_voltage;
+	const uint16_t current_cp_duty_cycle = evse_get_cp_duty_cycle();
+	ads1118.cp_high_voltage = (ads1118.cp_voltage_calibrated - ads1118.cp_cal_min_voltage)*1000/current_cp_duty_cycle + ads1118.cp_cal_min_voltage;
 
 
 	// If the measured high voltage is near the calibration max voltage
@@ -226,7 +227,7 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	// other cars, we assume this is some kind of capacitive effect. To make sure
 	// that we don't cancel the charging here, we increase the "infinite resistance"
 	// threshold for this scenario.
-	const bool id3_mode = (evse.low_level_cp_duty_cycle != 1000) && !XMC_GPIO_GetInput(EVSE_RELAY_PIN);
+	const bool id3_mode = (current_cp_duty_cycle != 1000) && !XMC_GPIO_GetInput(EVSE_RELAY_PIN);
 	if(id3_mode && (ads1118.cp_high_voltage + 500 > ads1118.cp_cal_max_voltage)) {
 		new_resistance = 0xFFFF;
 	} else if(!id3_mode && (ads1118.cp_high_voltage + 1000 > ads1118.cp_cal_max_voltage)) {
@@ -235,7 +236,7 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 		// resistance divider, 910 ohm on EVSE
 		// diode voltage drop 650mV (value is educated guess)
 		// voltage drop of opamp under with 880 ohm load: 617mV
-		if(evse.low_level_cp_duty_cycle == 1000) { // w/o PWM
+		if(current_cp_duty_cycle == 1000) { // w/o PWM
 			if(ads1118.cp_user_cal_active) {
 				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_2700ohm) - ads1118.cp_high_voltage);
 			} else {

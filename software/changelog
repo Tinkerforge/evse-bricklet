@@ -27,3 +27,7 @@
 2021-06-08: 2.0.7 (baa61c9)
 - Add user calibration support
 - Add special handling for ID.3
+
+2021-07-07: 2.0.8 (TBD)
+- Remove unused low-level-mode
+- Fix erroneous initialization of cp_duty_cycle

@@ -113,7 +113,7 @@ BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data
 	response->header.length          = sizeof(GetLowLevelState_Response);
 	response->low_level_mode_enabled = false; // We completely removed low-level mode, this is always false
 	response->led_state              = led.state;
-	response->cp_pwm_duty_cycle      = (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
+	response->cp_pwm_duty_cycle      = evse_get_cp_duty_cycle();
 	response->adc_values[0]          = ads1118.cp_adc_value;
 	response->adc_values[1]          = ads1118.pp_adc_value;
 	response->voltages[0]            = ads1118.cp_voltage_calibrated;
