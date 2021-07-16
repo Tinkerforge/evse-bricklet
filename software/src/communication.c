@@ -122,6 +122,7 @@ BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data
 	response->resistances[0]         = ads1118.cp_pe_resistance;
 	response->resistances[1]         = ads1118.pp_pe_resistance;
 	response->gpio[0]                = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN) | (XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN) << 1) | (XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN) << 2) | (XMC_GPIO_GetInput(EVSE_RELAY_PIN) << 3) | (XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN) << 4);
+	response->hardware_version       = ads1118.is_v15 ? 15 : 14;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
