@@ -119,6 +119,8 @@ void communication_init(void);
 #define FID_SET_MANAGED_CURRENT 13
 #define FID_GET_USER_CALIBRATION 14
 #define FID_SET_USER_CALIBRATION 15
+#define FID_GET_DATA_STORAGE 16
+#define FID_SET_DATA_STORAGE 17
 
 
 typedef struct {
@@ -261,6 +263,22 @@ typedef struct {
 	int16_t resistance_880[14];
 } __attribute__((__packed__)) SetUserCalibration;
 
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t page;
+} __attribute__((__packed__)) GetDataStorage;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t data[63];
+} __attribute__((__packed__)) GetDataStorage_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t page;
+	uint8_t data[63];
+} __attribute__((__packed__)) SetDataStorage;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
@@ -278,6 +296,8 @@ BootloaderHandleMessageResponse set_managed(const SetManaged *data);
 BootloaderHandleMessageResponse set_managed_current(const SetManagedCurrent *data);
 BootloaderHandleMessageResponse get_user_calibration(const GetUserCalibration *data, GetUserCalibration_Response *response);
 BootloaderHandleMessageResponse set_user_calibration(const SetUserCalibration *data);
+BootloaderHandleMessageResponse get_data_storage(const GetDataStorage *data, GetDataStorage_Response *response);
+BootloaderHandleMessageResponse set_data_storage(const SetDataStorage *data);
 
 // Callbacks
 
