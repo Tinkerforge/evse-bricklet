@@ -89,7 +89,7 @@ uint8_t *ads1118_get_config_for_mosi(const uint8_t channel, const bool normal) {
 	}
 
 	if(channel == 3) { 
-		// We use channel 3 for version testing, version testing is done be measuring between IN1 and GND
+		// We use channel 3 for version testing, version testing is done by measuring between IN1 and GND
 		config |= ADS1118_CONFIG_INP_IS_IN1_AND_INN_IS_GND;
 	} else {
 		if(ads1118.is_v15) {
