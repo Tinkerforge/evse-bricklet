@@ -38,7 +38,8 @@ typedef enum {
     LED_STATE_ON,
     LED_STATE_BLINKING,
     LED_STATE_FLICKER,
-    LED_STATE_BREATHING
+    LED_STATE_BREATHING,
+    LED_STATE_API
 } LEDState;
 
 typedef struct {
@@ -53,11 +54,33 @@ typedef struct {
 
     bool flicker_on;
     uint32_t flicker_last_time;
+
+	uint32_t breathing_time;
+	int16_t breathing_index;
+	bool breathing_up;
+
+	int16_t api_indication;
+	uint16_t api_duration;
+	uint32_t api_start;
+
+	uint8_t api_ack_counter;
+	uint8_t api_ack_index;
+	uint32_t api_ack_time;
+
+	uint8_t api_nack_counter;
+	uint8_t api_nack_index;
+	uint32_t api_nack_time;
+
+	uint8_t api_nag_counter;
+	uint8_t api_nag_index;
+	uint32_t api_nag_time;
 } LED;
 
 extern LED led;
 
-void led_set_on(void);
+void led_set_on(const bool force);
+void led_set_off(void);
+void led_set_breathing(void);
 void led_set_blinking(const uint8_t num);
 void led_init();
 void led_tick();

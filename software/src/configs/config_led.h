@@ -24,6 +24,8 @@
 
 #include "xmc_gpio.h"
 
+#define EVSE_LED_CCU           CCU40
+#define EVSE_LED_SLICE         CCU40_CC41
 #define EVSE_LED_SLICE_NUMBER  1
 #define EVSE_LED_PIN           P2_1
 

@@ -68,7 +68,7 @@ void iec61851_set_state(IEC61851State state) {
 	if(state != iec61851.state) {
 		if((state == IEC61851_STATE_A) || (state == IEC61851_STATE_B)) {
 			// Turn LED on with timer for standby if we have a state change to state A or B
-			led_set_on();
+			led_set_on(false);
 		}
 
 		if((iec61851.state != IEC61851_STATE_A) && (state == IEC61851_STATE_A)) {
@@ -159,7 +159,7 @@ void iec61851_state_a(void) {
 		// If the button was released while in a different state,
 		// we see the state change back to A as an event that turns the LED back on (until standby)
 		if(button_reset()) {
-			led_set_on();
+			led_set_on(false);
 		}
 	}
 }
@@ -174,7 +174,7 @@ void iec61851_state_c(void) {
 	// Apply 1kHz square wave to CP with appropriate duty cycle, enable contactor
 	uint32_t ma = iec61851_get_max_ma();
 	evse_set_output(iec61851_get_duty_cycle_for_ma(ma), true);
-	led.state = LED_STATE_BREATHING;
+	led_set_breathing();
 }
 
 void iec61851_state_d(void) {
@@ -206,7 +206,7 @@ void iec61851_tick(void) {
 		// As long as we are in "was_pressed"-state and the button is 
 		// still pressed (or key is turned to off) the LED stays off
 		if(button.state == BUTTON_STATE_PRESSED) {
-			led.state = LED_STATE_OFF;
+			led_set_off();
 		}
 	} else {
 		// Wait for ADC measurements to be valid

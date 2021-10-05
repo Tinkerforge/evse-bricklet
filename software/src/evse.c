@@ -393,7 +393,7 @@ void evse_tick(void) {
 	// Turn LED on (LED flicker off after startup/calibration)
 	if(evse.startup_time != 0) {
 		evse.startup_time = 0;
-		led_set_on();
+		led_set_on(false);
 	}
 
 	if(evse.calibration_state != 0) {

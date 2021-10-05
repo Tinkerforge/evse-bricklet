@@ -67,10 +67,57 @@ const uint16_t led_cie1931[256] = {
 #define LED_ON  LED_MIN_DUTY_CYLCE
 #define LED_OFF LED_MAX_DUTY_CYCLE
 
+void led_set_duty_cycle(const uint16_t compare_value) {
+	XMC_CCU4_SLICE_SetTimerCompareMatch(EVSE_LED_SLICE, compare_value);
+    XMC_CCU4_EnableShadowTransfer(EVSE_LED_CCU, (XMC_CCU4_SHADOW_TRANSFER_SLICE_0 << (EVSE_LED_SLICE_NUMBER*4)) |
+    		                                    (XMC_CCU4_SHADOW_TRANSFER_PRESCALER_SLICE_0 << (EVSE_LED_SLICE_NUMBER*4)));
+}
+
+void led_reset_api_state(void) {
+	led.api_indication   = -1;
+	led.api_start        = 0;
+	led.api_duration     = 0;
+
+	led.api_ack_counter  = 0;
+	led.api_ack_index    = 0;
+	led.api_ack_time     = 0;
+
+	led.api_nack_counter = 0;
+	led.api_nack_index   = 0;
+	led.api_nack_time    = 0;
+
+	led.api_nag_counter  = 0;
+	led.api_nag_index    = 0;
+	led.api_nag_time     = 0;
+}
+
+void led_set_breathing(void) {
+	// Check if we are already breathing state
+	if(led.state == LED_STATE_BREATHING) {
+		return;
+	}
+
+	// Breathing overwrites API configuration
+	if(led.state == LED_STATE_API) {
+		led_reset_api_state();
+	}
+
+	// Otherwise start breathing from LED-on-condition
+	led.state           = LED_STATE_BREATHING;
+	led.breathing_time  = 0;
+	led.breathing_index = 0;
+	led.breathing_up    = true;
+}
+
 void led_set_blinking(const uint8_t num) {
 	// Check if we are already blinking with the correct blink amount
 	if((led.state == LED_STATE_BLINKING) && (led.blink_num == num)) {
 		return;
+	}
+
+	// Blinking overwrites API configuration
+	if(led.state == LED_STATE_API) {
+		led_reset_api_state();
 	}
 
 	led.state           = LED_STATE_BLINKING;
@@ -80,18 +127,33 @@ void led_set_blinking(const uint8_t num) {
 	led.blink_last_time = system_timer_get_ms();
 
 #if LOGGING_LEVEL == LOGGING_NONE
-	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+	led_set_duty_cycle(LED_OFF);
 #endif
 }
 
 // Called whenever there is activity
 // LED will go to standby after 15 minutes again
-void led_set_on(void) {
+void led_set_on(const bool force) {
+	// led "on" does not overwrite API state
+	if(!force && (led.state == LED_STATE_API)) {
+		return;
+	}
+
 	led.on_time = system_timer_get_ms();
 	led.state = LED_STATE_ON;
 #if LOGGING_LEVEL == LOGGING_NONE
-	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+	led_set_duty_cycle(LED_ON);
 #endif
+}
+
+void led_set_off(void) {
+	// led "off" does not overwrite API state
+	if(led.state == LED_STATE_API) {
+		return;
+	}
+
+	led.state = LED_STATE_OFF;
+	led_set_duty_cycle(LED_OFF);
 }
 
 void led_init(void) {
@@ -107,7 +169,7 @@ void led_init(void) {
 
 void led_tick_status_off(void) {
 #if LOGGING_LEVEL == LOGGING_NONE
-	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+	led_set_duty_cycle(LED_OFF);
 #endif
 }
 
@@ -115,11 +177,11 @@ void led_tick_status_on(void) {
 	if(system_timer_is_time_elapsed_ms(led.on_time, LED_STANDBY_TIME)) {
 		led.state = LED_STATE_OFF;
 #if LOGGING_LEVEL == LOGGING_NONE
-		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+		led_set_duty_cycle(LED_OFF);
 #endif
 	} else {
 #if LOGGING_LEVEL == LOGGING_NONE
-		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+		led_set_duty_cycle(LED_ON);
 #endif
 	}
 }
@@ -134,7 +196,7 @@ void led_tick_status_blinking(void) {
 		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_ON)) {
 			led.blink_last_time = system_timer_get_ms();
 #if LOGGING_LEVEL == LOGGING_NONE
-			ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
+			led_set_duty_cycle(LED_OFF);
 #endif
 			led.blink_on = false;
 			led.blink_count++;
@@ -143,7 +205,7 @@ void led_tick_status_blinking(void) {
 		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_OFF)) {
 			led.blink_last_time = system_timer_get_ms();
 #if LOGGING_LEVEL == LOGGING_NONE
-			ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_ON);
+			led_set_duty_cycle(LED_ON);
 #endif
 			led.blink_on = true;
 		}
@@ -153,7 +215,7 @@ void led_tick_status_blinking(void) {
 void led_tick_status_flicker(void) {
 	if(system_timer_is_time_elapsed_ms(led.flicker_last_time, LED_FLICKER_DURATION)) {
 #if LOGGING_LEVEL == LOGGING_NONE
-		ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, led.flicker_on ? LED_ON : LED_OFF);
+		led_set_duty_cycle(led.flicker_on ? LED_ON : LED_OFF);
 #endif
 		led.flicker_last_time = system_timer_get_ms();
 		led.flicker_on        = ! led.flicker_on;
@@ -161,31 +223,98 @@ void led_tick_status_flicker(void) {
 }
 
 void led_tick_status_breathing(void) {
-	static uint32_t last_breath_time = 0;
-	static int16_t last_breath_index = 0;
-	static bool up = true;
-
-	if(!system_timer_is_time_elapsed_ms(last_breath_time, 5)) {
+	if(!system_timer_is_time_elapsed_ms(led.breathing_time, 5)) {
 		return;
 	}
-	last_breath_time = system_timer_get_ms();
+	led.breathing_time = system_timer_get_ms();
 
-	if(up) {
-		last_breath_index += 1;
+	if(led.breathing_up) {
+		led.breathing_index += 1;
 	} else {
-		last_breath_index -= 1;
+		led.breathing_index -= 1;
 	}
-	last_breath_index = BETWEEN(0, last_breath_index, 255);
+	led.breathing_index = BETWEEN(0, led.breathing_index, 255);
 	
-	if(last_breath_index == 0) {
-		up = true;
-	} else if(last_breath_index == 255) {
-		up = false;
+	if(led.breathing_index == 0) {
+		led.breathing_up = true;
+	} else if(led.breathing_index == 255) {
+		led.breathing_up = false;
 	}
 
 #if LOGGING_LEVEL == LOGGING_NONE
-	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, 6553 - led_cie1931[last_breath_index]/10);
+	led_set_duty_cycle(6553 - led_cie1931[led.breathing_index]/10);
 #endif
+}
+
+
+void led_tick_status_api_ack(void) {
+	if((led.api_ack_counter < 3) && (system_timer_is_time_elapsed_ms(led.api_ack_time, 2))) {
+		led_set_duty_cycle(6553 - led_cie1931[led.api_ack_index]/10);
+		led.api_ack_index++;
+		led.api_ack_time+=2;
+		if(led.api_ack_index == 0) {
+			led.api_ack_counter++;
+		}
+	} else if((led.api_ack_counter >= 3) && (system_timer_is_time_elapsed_ms(led.api_ack_time, 2000))) {
+		led.api_ack_index   = 0;
+		led.api_ack_counter = 0;
+		led.api_ack_time    = system_timer_get_ms();
+	}
+}
+
+void led_tick_status_api_nack(void) {
+	if((led.api_nack_counter < 1) && (system_timer_is_time_elapsed_ms(led.api_nack_time, 1))) {
+		led_set_duty_cycle(6553 - led_cie1931[255-led.api_nack_index]/10);
+		led.api_nack_index++;
+		led.api_nack_time++;
+		if(led.api_nack_index == 0) {
+			led.api_nack_counter++;
+		}
+	} else if((led.api_nack_counter >= 1) && (system_timer_is_time_elapsed_ms(led.api_nack_time, 400))) {
+		led.api_nack_index   = 0;
+		led.api_nack_counter = 0;
+		led.api_nack_time    = system_timer_get_ms();
+	}
+}
+
+void led_tick_status_api_nag(void) {
+	if((led.api_nag_counter == 0) && (system_timer_is_time_elapsed_ms(led.api_nag_time, 1))) {
+		led_set_duty_cycle(6553 - led_cie1931[led.api_nag_index]/10);
+		led.api_nag_index++;
+		led.api_nag_time++;
+		if(led.api_nag_index == 0) {
+			led.api_nag_counter++;
+		}
+	} else if((led.api_nag_counter == 1) && (system_timer_is_time_elapsed_ms(led.api_nag_time, 1))) {
+		led_set_duty_cycle(6553 - led_cie1931[255-led.api_nag_index]/10);
+		led.api_nag_index++;
+		led.api_nag_time++;
+		if(led.api_nag_index == 0) {
+			led.api_nag_counter++;
+		}
+	} else if((led.api_nag_counter >= 2) && (system_timer_is_time_elapsed_ms(led.api_nag_time, 400))) {
+		led.api_nag_index   = 0;
+		led.api_nag_counter = 0;
+		led.api_nag_time    = system_timer_get_ms();
+	}
+}
+
+void led_tick_status_api(void) {
+	if(system_timer_is_time_elapsed_ms(led.api_start, led.api_duration)) {
+		led_reset_api_state();
+		led_set_on(true);
+		return;
+	}
+
+	if((led.api_indication >= 0) && (led.api_indication <= 255)) {
+		led_set_duty_cycle(6553 - led_cie1931[led.api_indication]/10);
+	} else if(led.api_indication == 1001) {
+		led_tick_status_api_ack();
+	} else if(led.api_indication == 1002) {
+		led_tick_status_api_nack();
+	} else if(led.api_indication == 1003) {
+		led_tick_status_api_nag();
+	}
 }
 
 void led_tick(void) {
@@ -195,5 +324,6 @@ void led_tick(void) {
 		case LED_STATE_BLINKING:  led_tick_status_blinking();  break;
 		case LED_STATE_FLICKER:   led_tick_status_flicker();   break;
 		case LED_STATE_BREATHING: led_tick_status_breathing(); break;
+		case LED_STATE_API:       led_tick_status_api();       break;
 	}
 }

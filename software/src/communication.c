@@ -59,6 +59,8 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_SET_USER_CALIBRATION: return set_user_calibration(message);
 		case FID_GET_DATA_STORAGE: return get_data_storage(message, response);
 		case FID_SET_DATA_STORAGE: return set_data_storage(message);
+		case FID_GET_INDICATOR_LED: return get_indicator_led(message, response);
+		case FID_SET_INDICATOR_LED: return set_indicator_led(message, response);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -360,6 +362,72 @@ BootloaderHandleMessageResponse set_data_storage(const SetDataStorage *data) {
 	memcpy(evse.storage[data->page], data->data, 63);
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
+}
+
+BootloaderHandleMessageResponse get_indicator_led(const GetIndicatorLED *data, GetIndicatorLED_Response *response) {
+	response->header.length = sizeof(GetIndicatorLED_Response);
+	response->indication    = led.api_indication;
+	if((led.api_duration == 0) || system_timer_is_time_elapsed_ms(led.api_start, led.api_duration)) {
+		response->duration  = 0;
+	} else {
+		response->duration  = led.api_duration - ((uint32_t)(system_timer_get_ms() - led.api_start));
+	}
+
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse set_indicator_led(const SetIndicatorLED *data, SetIndicatorLED_Response *response) {
+	if((data->indication >= 256) && (data->indication != 1001) && (data->indication != 1002) && (data->indication != 1003)) {
+		return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
+	}
+
+	response->header.length = sizeof(SetIndicatorLED_Response);
+
+	// If the state and indication stays the same we just update the duration
+	// This way the animation does not become choppy
+	if((led.state == LED_STATE_API) && (led.api_indication == data->indication)) {
+		led.api_duration = data->duration;
+		led.api_start    = system_timer_get_ms();
+		response->status = 0;
+		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+	}
+
+	// Otherwise we reset the current animation and start the new one
+	if((led.state == LED_STATE_OFF) || (led.state == LED_STATE_ON) || (led.state == LED_STATE_API)) {
+		response->status     = 0;
+
+		led.api_ack_counter  = 0;
+		led.api_ack_index    = 0;
+		led.api_ack_time     = 0;
+
+		led.api_nack_counter = 0;
+		led.api_nack_index   = 0;
+		led.api_nack_time    = 0;
+
+		led.api_nag_counter  = 0;
+		led.api_nag_index    = 0;
+		led.api_nag_time     = 0;
+
+		if(data->indication < 0) {
+			// If LED state is currently LED_STATE_OFF or LED_STATE_ON we
+			// leave the LED where it is (and don't restart the standby timer).
+			// If LED state is currently in LED_STATE_API we
+			// turn the LED on (which brings it in LED_STATE_ON) and restarts the standby timer.
+			if(led.state == LED_STATE_API) {
+				led_set_on(true);
+			}
+		} else {
+			led.state          = LED_STATE_API;
+			led.api_indication = data->indication;
+			led.api_duration   = data->duration;
+			led.api_start      = system_timer_get_ms();
+		}
+	} else {
+		response->status = led.state;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
 
 
