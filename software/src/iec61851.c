@@ -223,8 +223,19 @@ void iec61851_tick(void) {
 		// this scenario.
 		const uint16_t current_cp_duty_cycle = evse_get_cp_duty_cycle();
 		const bool id3_mode = (current_cp_duty_cycle != 1000) && !XMC_GPIO_GetInput(EVSE_RELAY_PIN);
+		if(!id3_mode) {
+			iec61851.id3_mode_time = 0;
+		}
+
 		if(id3_mode && (ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A*3)) {
-			iec61851_set_state(IEC61851_STATE_A);
+			if(iec61851.id3_mode_time == 0) {
+				iec61851.id3_mode_time = system_timer_get_ms();
+			} else {
+				// wait for at least 500ms between B->A state change in ID.3 mode
+				if(system_timer_is_time_elapsed_ms(iec61851.id3_mode_time, 500)) {
+					iec61851_set_state(IEC61851_STATE_A);
+				}
+			}
 		} else if(!id3_mode && (ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A)) {
 			iec61851_set_state(IEC61851_STATE_A);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_B) {
