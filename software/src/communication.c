@@ -114,20 +114,20 @@ BootloaderHandleMessageResponse get_hardware_configuration(const GetHardwareConf
 }
 
 BootloaderHandleMessageResponse get_low_level_state(const GetLowLevelState *data, GetLowLevelState_Response *response) {
-	response->header.length          = sizeof(GetLowLevelState_Response);
-	response->low_level_mode_enabled = false; // We completely removed low-level mode, this is always false
-	response->led_state              = led.state;
-	response->cp_pwm_duty_cycle      = evse_get_cp_duty_cycle();
-	response->adc_values[0]          = ads1118.cp_adc_value;
-	response->adc_values[1]          = ads1118.pp_adc_value;
-	response->voltages[0]            = ads1118.cp_voltage_calibrated;
-	response->voltages[1]            = ads1118.pp_voltage;
-	response->voltages[2]            = ads1118.cp_high_voltage;
-	response->resistances[0]         = ads1118.cp_pe_resistance;
-	response->resistances[1]         = ads1118.pp_pe_resistance;
-	response->gpio[0]                = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN) | (XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN) << 1) | (XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN) << 2) | (XMC_GPIO_GetInput(EVSE_RELAY_PIN) << 3) | (XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN) << 4);
-	response->hardware_version       = ads1118.is_v15 ? 15 : 14;
-	response->time_since_cp_pwm_change = evse.time_since_cp_pwm_change;
+	response->header.length            = sizeof(GetLowLevelState_Response);
+	response->low_level_mode_enabled   = false; // We completely removed low-level mode, this is always false
+	response->led_state                = led.state;
+	response->cp_pwm_duty_cycle        = evse_get_cp_duty_cycle();
+	response->adc_values[0]            = ads1118.cp_adc_value;
+	response->adc_values[1]            = ads1118.pp_adc_value;
+	response->voltages[0]              = ads1118.cp_voltage_calibrated;
+	response->voltages[1]              = ads1118.pp_voltage;
+	response->voltages[2]              = ads1118.cp_high_voltage;
+	response->resistances[0]           = ads1118.cp_pe_resistance;
+	response->resistances[1]           = ads1118.pp_pe_resistance;
+	response->gpio[0]                  = XMC_GPIO_GetInput(EVSE_INPUT_GP_PIN) | (XMC_GPIO_GetInput(EVSE_OUTPUT_GP_PIN) << 1) | (XMC_GPIO_GetInput(EVSE_MOTOR_INPUT_SWITCH_PIN) << 2) | (XMC_GPIO_GetInput(EVSE_RELAY_PIN) << 3) | (XMC_GPIO_GetInput(EVSE_MOTOR_FAULT_PIN) << 4);
+	response->hardware_version         = ads1118.is_v15 ? 15 : 14;
+	response->time_since_cp_pwm_change = system_timer_get_ms() - evse.time_since_cp_pwm_change;
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 }
