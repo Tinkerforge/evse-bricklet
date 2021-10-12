@@ -42,3 +42,6 @@
 2021-10-11. 2.0.11 (ce6d2ed)
 - Add set_indicator_led API (compatible to EVSE V2)
 - Add 500ms delay between state change from B to A in ID.3 mode
+
+2021-XX-XX: 2.0.12 (TBD)
+- Add TimeSinceCPPWMChange parameter to low level state getter

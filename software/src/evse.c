@@ -308,6 +308,7 @@ uint16_t evse_get_cp_duty_cycle(void) {
 void evse_set_cp_duty_cycle(const uint16_t duty_cycle) {
 	const uint16_t current_cp_duty_cycle = evse_get_cp_duty_cycle();
 	if(current_cp_duty_cycle != duty_cycle) {
+		evse.time_since_cp_pwm_change = system_timer_get_ms();
 		// Ignore the next 10 ADC measurements between CP/PE after we
 		// change PWM duty cycle of CP to be sure that that the measurement
 		// is not of any in-between state.
@@ -355,6 +356,7 @@ void evse_init(void) {
 	evse_init_lock_switch();
 
 	evse.startup_time = system_timer_get_ms();
+	evse.time_since_cp_pwm_change = system_timer_get_ms();
 }
 
 void evse_tick_debug(void) {

@@ -88,6 +88,8 @@ typedef struct {
 	bool managed;
 	uint16_t max_managed_current;
 
+	uint32_t time_since_cp_pwm_change;
+
 	uint8_t storage[EVSE_STORAGE_PAGES][64];
 } EVSE;
 

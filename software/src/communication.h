@@ -167,6 +167,7 @@ typedef struct {
 	uint32_t resistances[2];
 	uint8_t gpio[1];
 	uint8_t hardware_version;
+	uint32_t time_since_cp_pwm_change;
 } __attribute__((__packed__)) GetLowLevelState_Response;
 
 typedef struct {
