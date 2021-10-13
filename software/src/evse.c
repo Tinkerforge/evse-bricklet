@@ -308,10 +308,6 @@ uint16_t evse_get_cp_duty_cycle(void) {
 void evse_set_cp_duty_cycle(const uint16_t duty_cycle) {
 	const uint16_t current_cp_duty_cycle = evse_get_cp_duty_cycle();
 	if(current_cp_duty_cycle != duty_cycle) {
-		if((current_cp_duty_cycle == 1000) || (duty_cycle == 1000)) {
-			evse.time_since_cp_pwm_change = system_timer_get_ms();
-		}
-
 		// Ignore the next 10 ADC measurements between CP/PE after we
 		// change PWM duty cycle of CP to be sure that that the measurement
 		// is not of any in-between state.
@@ -359,7 +355,7 @@ void evse_init(void) {
 	evse_init_lock_switch();
 
 	evse.startup_time = system_timer_get_ms();
-	evse.time_since_cp_pwm_change = system_timer_get_ms();
+	evse.charging_time = 0;
 }
 
 void evse_tick_debug(void) {
@@ -393,6 +389,11 @@ void evse_tick(void) {
 		}
 #endif
 		return;
+	}
+
+	// If the charging timer is running and the car is disconnected, stop the charging timer
+	if((evse.charging_time != 0) && (ads1118.cp_pe_resistance > 10000)) {
+		evse.charging_time = 0;
 	}
 
 	// Turn LED on (LED flicker off after startup/calibration)
