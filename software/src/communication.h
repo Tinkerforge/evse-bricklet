@@ -123,6 +123,7 @@ void communication_init(void);
 #define FID_SET_DATA_STORAGE 17
 #define FID_GET_INDICATOR_LED 18
 #define FID_SET_INDICATOR_LED 19
+#define FID_GET_BUTTON_STATE 20
 
 
 typedef struct {
@@ -302,6 +303,17 @@ typedef struct {
 	TFPMessageHeader header;
 	uint8_t status;
 } __attribute__((__packed__)) SetIndicatorLED_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetButtonState;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint32_t button_press_time;
+	uint32_t button_release_time;
+	bool button_pressed;
+} __attribute__((__packed__)) GetButtonState_Response;
 
 
 // Function prototypes
