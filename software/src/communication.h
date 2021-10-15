@@ -124,6 +124,8 @@ void communication_init(void);
 #define FID_GET_INDICATOR_LED 18
 #define FID_SET_INDICATOR_LED 19
 #define FID_GET_BUTTON_STATE 20
+#define FID_GET_ALL_DATA_1 21
+#define FID_GET_ALL_DATA_2 22
 
 
 typedef struct {
@@ -315,6 +317,60 @@ typedef struct {
 	bool button_pressed;
 } __attribute__((__packed__)) GetButtonState_Response;
 
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetAllData1;
+
+typedef struct {
+	TFPMessageHeader header;
+	uint8_t iec61851_state;
+	uint8_t vehicle_state;
+	uint8_t contactor_state;
+	uint8_t contactor_error;
+	uint8_t charge_release;
+	uint16_t allowed_charging_current;
+	uint8_t error_state;
+	uint8_t lock_state;
+	uint32_t time_since_state_change;
+	uint32_t uptime;
+	uint8_t jumper_configuration;
+	bool has_lock_switch;
+	bool low_level_mode_enabled;
+	uint8_t led_state;
+	uint16_t cp_pwm_duty_cycle;
+	uint16_t adc_values[2];
+	int16_t voltages[3];
+	uint32_t resistances[2];
+	uint8_t gpio[1];
+	uint8_t hardware_version;
+	uint32_t charging_time;
+	uint16_t max_current_configured;
+	uint16_t max_current_incoming_cable;
+	uint16_t max_current_outgoing_cable;
+	uint16_t max_current_managed;
+	bool autostart;
+	bool managed;
+} __attribute__((__packed__)) GetAllData1_Response;
+
+typedef struct {
+	TFPMessageHeader header;
+} __attribute__((__packed__)) GetAllData2;
+
+typedef struct {
+	TFPMessageHeader header;
+	bool user_calibration_active;
+	int16_t voltage_diff;
+	int16_t voltage_mul;
+	int16_t voltage_div;
+	int16_t resistance_2700;
+	int16_t resistance_880[14];
+	int16_t indication;
+	uint16_t duration;
+	uint32_t button_press_time;
+	uint32_t button_release_time;
+	bool button_pressed;
+} __attribute__((__packed__)) GetAllData2_Response;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
@@ -336,6 +392,9 @@ BootloaderHandleMessageResponse get_data_storage(const GetDataStorage *data, Get
 BootloaderHandleMessageResponse set_data_storage(const SetDataStorage *data);
 BootloaderHandleMessageResponse get_indicator_led(const GetIndicatorLED *data, GetIndicatorLED_Response *response);
 BootloaderHandleMessageResponse set_indicator_led(const SetIndicatorLED *data, SetIndicatorLED_Response *response);
+BootloaderHandleMessageResponse get_button_state(const GetButtonState *data, GetButtonState_Response *response);
+BootloaderHandleMessageResponse get_all_data_1(const GetAllData1 *data, GetAllData1_Response *response);
+BootloaderHandleMessageResponse get_all_data_2(const GetAllData2 *data, GetAllData2_Response *response);
 
 // Callbacks
 
