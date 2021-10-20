@@ -45,3 +45,5 @@
 
 2021-XX-XX: 2.0.12 (TBD)
 - Add ChargeTime parameter to low level state getter
+- Add GetButtonState API
+- Add GetAllDataX API (for internal use in WARP Charger)
