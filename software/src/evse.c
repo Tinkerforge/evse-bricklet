@@ -1,5 +1,5 @@
 /* evse-bricklet
- * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2020-2022 Olaf Lüke <olaf@tinkerforge.com>
  *
  * evse.c: EVSE implementation
  *
@@ -33,6 +33,8 @@
 #include "lock.h"
 #include "contactor_check.h"
 #include "led.h"
+#include "communication.h"
+#include "charging_slot.h"
 
 #define EVSE_RELAY_MONOFLOP_TIME 10000 // 10 seconds
 
@@ -283,20 +285,58 @@ void evse_load_config(void) {
 	// This is either our first startup or something went wrong.
 	// We initialize the config data with sane default values.
 	if(page[EVSE_CONFIG_MAGIC_POS] != EVSE_CONFIG_MAGIC) {
-		evse.managed = false;
+		evse.legacy_managed               = false;
 	} else {
-		evse.managed = page[EVSE_CONFIG_MANAGED_POS];
+		evse.legacy_managed               = page[EVSE_CONFIG_MANAGED_POS];
+	}
+
+	// Handle charging slot defaults
+	EVSEChargingSlotDefault *slot_default = (EVSEChargingSlotDefault *)(&page[EVSE_CONFIG_SLOT_DEFAULT_POS]);
+	if(slot_default->magic == EVSE_CONFIG_SLOT_MAGIC) {
+		for(uint8_t i = 0; i < 18; i++) {
+			charging_slot.max_current_default[i]         = slot_default->current[i];
+			charging_slot.active_default[i]              = slot_default->active_clear[i] & 1;
+			charging_slot.clear_on_disconnect_default[i] = slot_default->active_clear[i] & 2;
+		}
+	} else {
+		// If there is no default the button slot is activated and everything else is deactivated
+		for(uint8_t i = 0; i < 18; i++) {
+			charging_slot.max_current_default[i]         = 0;
+			charging_slot.active_default[i]              = false;
+			charging_slot.clear_on_disconnect_default[i] = false;
+		}
+
+		// Those are default indices, _not_ slot indices.
+		charging_slot.max_current_default[2]         = 32000;
+		charging_slot.active_default[2]              = true;
+		charging_slot.clear_on_disconnect_default[2] = false;
+
+		charging_slot.max_current_default[5]         = 0;
+		charging_slot.active_default[5]              = evse.legacy_managed;
+		charging_slot.clear_on_disconnect_default[5] = evse.legacy_managed;
 	}
 
 	logd("Load config:\n\r");
-	logd(" * managed %d\n\r", evse.managed);
+	logd(" * legacy managed    %d\n\r", evse.legacy_managed);
+	logd(" * relener           %d\n\r", sdm630.relative_energy.data);
+	logd(" * shutdown input    %d\n\r", evse.shutdown_input_configuration);
+	logd(" * slot current      %d %d %d %d %d %d %d %d", charging_slot.max_current_default[0], charging_slot.max_current_default[1], charging_slot.max_current_default[2], charging_slot.max_current_default[3], charging_slot.max_current_default[4], charging_slot.max_current_default[5], charging_slot.max_current_default[6], charging_slot.max_current_default[7]);
+	logd(" * slot active/clear %d %d %d %d %d %d %d %d", charging_slot.clear_on_disconnect_default[0], charging_slot.clear_on_disconnect_default[1], charging_slot.clear_on_disconnect_default[2], charging_slot.clear_on_disconnect_default[3], charging_slot.clear_on_disconnect_default[4], charging_slot.clear_on_disconnect_default[5], charging_slot.clear_on_disconnect_default[6], charging_slot.clear_on_disconnect_default[7]);
 }
 
 void evse_save_config(void) {
 	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
 
-	page[EVSE_CONFIG_MAGIC_POS]   = EVSE_CONFIG_MAGIC;
-	page[EVSE_CONFIG_MANAGED_POS] = evse.managed;
+	page[EVSE_CONFIG_MAGIC_POS]          = EVSE_CONFIG_MAGIC;
+	page[EVSE_CONFIG_MANAGED_POS]        = evse.legacy_managed;
+
+	// Handle charging slot defaults
+	EVSEChargingSlotDefault *slot_default = (EVSEChargingSlotDefault *)(&page[EVSE_CONFIG_SLOT_DEFAULT_POS]);
+	for(uint8_t i = 0; i < 18; i++) {
+		slot_default->current[i]      = charging_slot.max_current_default[i];
+		slot_default->active_clear[i] = (charging_slot.active_default[i] << 0) | (charging_slot.clear_on_disconnect_default[i] << 1);
+	}
+	slot_default->magic = EVSE_CONFIG_SLOT_MAGIC;
 
 	bootloader_write_eeprom_page(EVSE_CONFIG_PAGE, page);
 }
@@ -345,8 +385,6 @@ void evse_init(void) {
 	evse.calibration_state = 0;
 	evse.config_jumper_current_software = 6000; // default software configuration is 6A
 	evse.max_current_configured = 32000; // default user defined current ist 32A
-	evse.max_managed_current = 32000;
-	evse.charging_autostart = true;
 
 	evse_load_calibration();
 	evse_load_user_calibration();

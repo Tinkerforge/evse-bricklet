@@ -1,5 +1,5 @@
 /* evse-bricklet
- * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2020-2022 Olaf Lüke <olaf@tinkerforge.com>
  *
  * main.c: Initialization for EVSE Bricklet
  *
@@ -36,6 +36,7 @@
 #include "contactor_check.h"
 #include "led.h"
 #include "button.h"
+#include "charging_slot.h"
 
 int main(void) {
 	logging_init();
@@ -43,6 +44,7 @@ int main(void) {
 
 	communication_init();
 	evse_init();
+	charging_slot_init();
 	ads1118_init();
 	iec61851_init();
 	lock_init();
@@ -59,5 +61,6 @@ int main(void) {
 		contactor_check_tick();
 		led_tick();
 		button_tick();
+		charging_slot_tick();
 	}
 }

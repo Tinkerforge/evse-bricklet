@@ -1,5 +1,5 @@
 /* evse-bricklet
- * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2020-2022 Olaf Lüke <olaf@tinkerforge.com>
  *
  * button.c: EVSE button driver
  *
@@ -27,6 +27,7 @@
 
 #include "led.h"
 #include "evse.h"
+#include "charging_slot.h"
 
 #include <string.h>
 
@@ -57,26 +58,26 @@ void button_tick(void) {
 		} else {
 			button.state = BUTTON_STATE_PRESSED;
 			button.press_time = system_timer_get_ms();
-
 			button.was_pressed = true;
+
+			// Disallow charging bybutton charging slot
+			charging_slot_stop_charging_by_button();
 		}
 	}
 
 	if(button.was_pressed) {
-		if(evse.managed) {
-			evse.max_managed_current = 0;
+		// As long as we are in "was_pressed"-state and the button is
+		// still pressed (or key is turned to off) the LED stays off
+		if(button.state == BUTTON_STATE_PRESSED) {
+			led_set_off();
 		}
 	}
 }
 
 bool button_reset(void) {
 	if((button.state != BUTTON_STATE_PRESSED) && button.was_pressed) {
-		// If autostart is disabled, the button can only be "unpressed" through the API
-		// by calling "StartCharging()"
-		if(evse.charging_autostart) {
-			button.was_pressed = false;
-			return true;
-		}
+		button.was_pressed = false;
+		return true;
 	}
 
 	return false;

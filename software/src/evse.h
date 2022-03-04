@@ -1,5 +1,5 @@
 /* evse-bricklet
- * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2020-2022 Olaf Lüke <olaf@tinkerforge.com>
  *
  * evse.h: EVSE implementation
  *
@@ -62,8 +62,16 @@
 #define EVSE_CONFIG_PAGE                3
 #define EVSE_CONFIG_MAGIC_POS           0
 #define EVSE_CONFIG_MANAGED_POS         1
+#define EVSE_CONFIG_SLOT_DEFAULT_POS    48
+
+typedef struct {
+	uint16_t current[18];
+	uint8_t active_clear[18];
+	uint32_t magic;
+} __attribute__((__packed__)) EVSEChargingSlotDefault;
 
 #define EVSE_CONFIG_MAGIC               0x34567890
+#define EVSE_CONFIG_SLOT_MAGIC          0x62870616
 
 #define EVSE_STORAGE_PAGES              16
 
@@ -71,9 +79,10 @@ typedef struct {
     uint32_t startup_time;
 
 	uint8_t config_jumper_current;
-	bool has_lock_switch;
-
 	uint16_t config_jumper_current_software;
+
+	bool has_lock_switch;
+	bool legacy_managed;
 
 	uint8_t calibration_state;
 	uint32_t calibration_time;
@@ -83,10 +92,6 @@ typedef struct {
 
 	uint16_t max_current_configured;
 	bool calibration_error;
-	bool charging_autostart;
-
-	bool managed;
-	uint16_t max_managed_current;
 
 	uint32_t charging_time;
 
@@ -95,6 +100,7 @@ typedef struct {
 
 extern EVSE evse;
 
+void evse_save_config(void);
 void evse_save_calibration(void);
 void evse_save_user_calibration(void);
 void evse_save_config(void);
