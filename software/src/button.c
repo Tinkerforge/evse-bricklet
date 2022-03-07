@@ -76,6 +76,8 @@ void button_tick(void) {
 
 bool button_reset(void) {
 	if((button.state != BUTTON_STATE_PRESSED) && button.was_pressed) {
+		// Make sure button charging slots allowes charging again
+		charging_slot_start_charging_by_button();
 		button.was_pressed = false;
 		return true;
 	}

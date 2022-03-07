@@ -95,3 +95,7 @@ void charging_slot_handle_disconnect(void) {
 void charging_slot_stop_charging_by_button(void) {
     charging_slot.max_current[CHARGING_SLOT_BUTTON] = 0;
 }
+
+void charging_slot_start_charging_by_button(void) {
+    charging_slot.max_current[CHARGING_SLOT_BUTTON] = 32000;
+}
