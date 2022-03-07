@@ -347,6 +347,7 @@ typedef struct {
 	uint16_t duration;
 	uint32_t button_press_time;
 	uint32_t button_release_time;
+	bool button_pressed;
 } __attribute__((__packed__)) GetAllData1_Response;
 
 
