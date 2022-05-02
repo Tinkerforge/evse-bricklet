@@ -63,6 +63,7 @@ BootloaderHandleMessageResponse handle_message(const void *message, void *respon
 		case FID_SET_INDICATOR_LED: return set_indicator_led(message, response);
 		case FID_GET_BUTTON_STATE: return get_button_state(message, response);
 		case FID_GET_ALL_DATA_1: return get_all_data_1(message, response);
+		case FID_FACTORY_RESET: return factory_reset(message);
 		default: return HANDLE_MESSAGE_RESPONSE_NOT_SUPPORTED;
 	}
 }
@@ -477,6 +478,15 @@ BootloaderHandleMessageResponse get_all_data_1(const GetAllData1 *data, GetAllDa
 	memcpy(&response->button_press_time, parts.data, sizeof(GetButtonState_Response) - sizeof(TFPMessageHeader));
 
 	return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
+}
+
+BootloaderHandleMessageResponse factory_reset(const FactoryReset *data) {
+	if(data->password == 0x2342FACD) {
+		evse.factory_reset_time = system_timer_get_ms();
+		return HANDLE_MESSAGE_RESPONSE_EMPTY;
+	}
+
+	return HANDLE_MESSAGE_RESPONSE_INVALID_PARAMETER;
 }
 
 

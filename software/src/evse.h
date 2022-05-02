@@ -84,6 +84,8 @@ typedef struct {
 	bool has_lock_switch;
 	bool legacy_managed;
 
+	uint32_t factory_reset_time;
+
 	uint8_t calibration_state;
 	uint32_t calibration_time;
 

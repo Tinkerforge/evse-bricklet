@@ -67,7 +67,7 @@ void contactor_check_tick(void) {
 		if(contactor_check.invalid_counter > 0) {
 			contactor_check.invalid_counter--;
 		} else {
-			// Check for edge count of 10. We expect and edge count of 25,
+			// Check for edge count of 10. We expect an edge count of 25,
 			// but an edge count > 0 should already be enough to detect the 230V.
 			// To make sure that we don't see any random glitches we check for > 10 as a compromise.
 			const bool ac1_live = contactor_check.ac1_edge_count > 10;

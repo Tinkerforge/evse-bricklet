@@ -120,6 +120,7 @@ void communication_init(void);
 #define FID_SET_INDICATOR_LED 18
 #define FID_GET_BUTTON_STATE 19
 #define FID_GET_ALL_DATA_1 20
+#define FID_FACTORY_RESET 21
 
 
 typedef struct {
@@ -350,6 +351,11 @@ typedef struct {
 	bool button_pressed;
 } __attribute__((__packed__)) GetAllData1_Response;
 
+typedef struct {
+	TFPMessageHeader header;
+	uint32_t password;
+} __attribute__((__packed__)) FactoryReset;
+
 
 // Function prototypes
 BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Response *response);
@@ -372,6 +378,7 @@ BootloaderHandleMessageResponse get_indicator_led(const GetIndicatorLED *data, G
 BootloaderHandleMessageResponse set_indicator_led(const SetIndicatorLED *data, SetIndicatorLED_Response *response);
 BootloaderHandleMessageResponse get_button_state(const GetButtonState *data, GetButtonState_Response *response);
 BootloaderHandleMessageResponse get_all_data_1(const GetAllData1 *data, GetAllData1_Response *response);
+BootloaderHandleMessageResponse factory_reset(const FactoryReset *data);
 
 // Callbacks
 

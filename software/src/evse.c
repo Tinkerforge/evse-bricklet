@@ -341,6 +341,13 @@ void evse_save_config(void) {
 	bootloader_write_eeprom_page(EVSE_CONFIG_PAGE, page);
 }
 
+void evse_factory_reset(void) {
+	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)] = {0};
+	bootloader_write_eeprom_page(EVSE_CONFIG_PAGE, page);
+
+	NVIC_SystemReset();
+}
+
 uint16_t evse_get_cp_duty_cycle(void) {
 	return (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
 }
@@ -427,6 +434,13 @@ void evse_tick(void) {
 		}
 #endif
 		return;
+	}
+
+
+	if(evse.factory_reset_time != 0) {
+		if(system_timer_is_time_elapsed_ms(evse.factory_reset_time, 500)) {
+			evse_factory_reset();
+		}
 	}
 
 	// If the charging timer is running and the car is disconnected, stop the charging timer
