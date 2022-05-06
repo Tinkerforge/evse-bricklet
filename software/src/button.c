@@ -45,6 +45,10 @@ void button_tick(void) {
 	if(value != button.last_value) {
 		button.last_value = value;
 		button.last_change_time = system_timer_get_ms();
+		if(!value) {
+			// We always see a button release as a state change that turns the LED on (until standby)
+			led_set_on(false);
+		}
 	}
 
 	if(button.last_change_time != 0 && system_timer_is_time_elapsed_ms(button.last_change_time, BUTTON_DEBOUNCE)) {
@@ -52,35 +56,17 @@ void button_tick(void) {
 		if(!value) {
 			button.state = BUTTON_STATE_RELEASED;
 			button.release_time = system_timer_get_ms();
-
-			// We always see a button release as a state change that turns the LED on (until standby)
-			led_set_on(false);
 		} else {
 			button.state = BUTTON_STATE_PRESSED;
 			button.press_time = system_timer_get_ms();
-			button.was_pressed = true;
 
-			// Disallow charging bybutton charging slot
+			// Disallow charging by button charging slot
 			charging_slot_stop_charging_by_button();
 		}
 	}
 
-	if(button.was_pressed) {
-		// As long as we are in "was_pressed"-state and the button is
-		// still pressed (or key is turned to off) the LED stays off
-		if(button.state == BUTTON_STATE_PRESSED) {
-			led_set_off();
-		}
+	// As long as the button is pressed (or key is turned to off) the LED stays off
+	if(button.state == BUTTON_STATE_PRESSED) {
+		led_set_off();
 	}
-}
-
-bool button_reset(void) {
-	if((button.state != BUTTON_STATE_PRESSED) && button.was_pressed) {
-		// Make sure button charging slots allowes charging again
-		charging_slot_start_charging_by_button();
-		button.was_pressed = false;
-		return true;
-	}
-
-	return false;
 }

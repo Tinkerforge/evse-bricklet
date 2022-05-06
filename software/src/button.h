@@ -32,7 +32,6 @@ typedef enum {
 
 typedef struct {
     ButtonState state;
-    bool was_pressed;
 
     bool last_value;
     uint32_t last_change_time;
@@ -45,6 +44,5 @@ extern Button button;
 
 void button_init(void);
 void button_tick(void);
-bool button_reset(void);
 
 #endif

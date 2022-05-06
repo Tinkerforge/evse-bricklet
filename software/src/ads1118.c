@@ -139,7 +139,7 @@ uint16_t ads1118_cp_adc_avg_queue_get(void) {
 
 void ads1118_cp_handle_continuous_calibration(const uint16_t adc_value) {
 	// We don't do the calibration if the box is not enabled
-	if(button.was_pressed) {
+	if(button.state == BUTTON_STATE_PRESSED) {
 		return;
 	}
 

@@ -53,3 +53,6 @@
 
 2022-05-02: 2.1.1 (4c219b8)
 - Add FactoryReset-function
+
+2022-05-06: 2.1.2 (TBD)
+- Improve button/key stop logic
