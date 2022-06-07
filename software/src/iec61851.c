@@ -133,6 +133,14 @@ uint16_t iec61851_get_duty_cycle_for_ma(uint32_t ma) {
 }
 
 void iec61851_state_a(void) {
+	// In the case that a charging was stopped by pressing the button,
+	// we only allow to start charging again after we reach state A.
+	if(button.was_pressed) {
+		button.was_pressed = false;
+		if(button.state == BUTTON_STATE_RELEASED) {
+			charging_slot_start_charging_by_button();
+		}
+	}
 	// Apply +12V to CP, disable contactor
 	evse_set_output(1000, false);
 }
@@ -196,8 +204,8 @@ void iec61851_tick(void) {
 			if(iec61851.id3_mode_time == 0) {
 				iec61851.id3_mode_time = system_timer_get_ms();
 			} else {
-				// wait for at least 500ms between B->A state change in ID.3 mode
-				if(system_timer_is_time_elapsed_ms(iec61851.id3_mode_time, 500)) {
+				// wait for at least 2500ms between B->A state change in ID.3 mode
+				if(system_timer_is_time_elapsed_ms(iec61851.id3_mode_time, 2500)) {
 					iec61851_set_state(IEC61851_STATE_A);
 				}
 			}

@@ -97,5 +97,12 @@ void charging_slot_stop_charging_by_button(void) {
 }
 
 void charging_slot_start_charging_by_button(void) {
+    // if auto-start is off (i.e. clean-on-disconnect is activated)
+    // or the button was pressed and we did not see state A yet
+    // We don't allow the button/key switch to start a new charge again.
+    if(charging_slot.clear_on_disconnect[CHARGING_SLOT_BUTTON] || button.was_pressed) {
+        return;
+    }
+
     charging_slot.max_current[CHARGING_SLOT_BUTTON] = 32000;
 }

@@ -56,3 +56,8 @@
 
 2022-05-06: 2.1.2 (3b72e77)
 - Improve button/key stop logic
+
+2022-06-07: 2.1.3 (TBD)
+- Make sure to never start charging when key switch is turned off
+- Increase ID.3 mode wait time hysteresis time from 500ms to 2500ms
+- Make sure LED turns on until standby for every state change

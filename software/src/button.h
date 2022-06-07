@@ -36,6 +36,8 @@ typedef struct {
     bool last_value;
     uint32_t last_change_time;
 
+    bool was_pressed;
+
 	uint32_t press_time;
 	uint32_t release_time;
 } Button;
