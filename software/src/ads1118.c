@@ -238,19 +238,36 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 		// voltage drop of opamp under with 880 ohm load: 617mV
 		if(current_cp_duty_cycle == 1000) { // w/o PWM
 			if(ads1118.cp_user_cal_active) {
-				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_2700ohm) - ads1118.cp_high_voltage);
+				if(ads1118.cp_high_voltage > (ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_2700ohm)) {
+					new_resistance = 0xFFFF;
+				} else {
+					new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_2700ohm) - ads1118.cp_high_voltage);
+				}
 			} else {
-				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_2700ohm) - ads1118.cp_high_voltage);
+				if(ads1118.cp_high_voltage > (ads1118.cp_cal_max_voltage - ads1118.cp_cal_2700ohm)) {
+					new_resistance = 0xFFFF;
+				} else {
+					new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_2700ohm) - ads1118.cp_high_voltage);
+				}
 			}
 		} else { // w/ PWM
 			uint32_t ma = iec61851_get_max_ma();
 			uint32_t index = SCALE(ma, 6000, 32000, 0, ADS1118_880OHM_CAL_NUM-1);
 			if(ads1118.cp_user_cal_active) {
-				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_880ohm[index])  - ads1118.cp_high_voltage);
+				if(ads1118.cp_high_voltage > (ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_880ohm[index])) {
+					new_resistance = 0xFFFF;
+				} else {
+					new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_880ohm[index])  - ads1118.cp_high_voltage);
+				}
 			} else {
-				new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_880ohm[index])  - ads1118.cp_high_voltage);
+				if(ads1118.cp_high_voltage > (ads1118.cp_cal_max_voltage - ads1118.cp_cal_880ohm[index])) {
+					new_resistance = 0xFFFF;
+				} else {
+					new_resistance = 910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP)/((ads1118.cp_cal_max_voltage - ads1118.cp_cal_880ohm[index])  - ads1118.cp_high_voltage);
+				}
 			}
 		}
+		new_resistance = MIN(0xFFFF, new_resistance);
 	}
 
 	if(ads1118.moving_average_cp_new) {
