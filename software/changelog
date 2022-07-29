@@ -61,3 +61,6 @@
 - Make sure to never start charging when key switch is turned off
 - Increase ID.3 mode wait time hysteresis time from 500ms to 2500ms
 - Make sure LED turns on until standby for every state change
+
+2022-XX-XX: 2.1.4 (TBD)
+- Make sure charging starts again when autostart is active and stop button was pressed while car was not charging
