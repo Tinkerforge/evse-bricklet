@@ -38,6 +38,7 @@ typedef struct {
     uint32_t last_state_change;
 
     uint32_t id3_mode_time;
+	uint32_t last_error_time;
 } IEC61851;
 
 extern IEC61851 iec61851;

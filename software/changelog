@@ -65,3 +65,4 @@
 2022-XX-XX: 2.1.4 (TBD)
 - Make sure charging starts again when autostart is active and stop button was pressed while car was not charging
 - Improve CP/PE resistance calculation (make sure there can't be over-/underflow)
+- Add minimum time of 30s between error state E/F and next activation of contactor
