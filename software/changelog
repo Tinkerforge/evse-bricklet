@@ -62,7 +62,7 @@
 - Increase ID.3 mode wait time hysteresis time from 500ms to 2500ms
 - Make sure LED turns on until standby for every state change
 
-2022-XX-XX: 2.1.4 (TBD)
+2022-09-13: 2.1.4 (d5b9a2f)
 - Make sure charging starts again when autostart is active and stop button was pressed while car was not charging
 - Improve CP/PE resistance calculation (make sure there can't be over-/underflow)
 - Add minimum time of 30s between error state E/F and next activation of contactor
