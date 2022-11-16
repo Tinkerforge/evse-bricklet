@@ -67,5 +67,5 @@
 - Improve CP/PE resistance calculation (make sure there can't be over-/underflow)
 - Add minimum time of 30s between error state E/F and next activation of contactor
 
-2022-XX-XX: 2.1.5 (TBD):
+2022-11-16: 2.1.5 (40c98f6):
 - Add additional master communication watchdog
