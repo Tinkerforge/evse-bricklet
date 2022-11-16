@@ -97,6 +97,8 @@ typedef struct {
 
 	uint32_t charging_time;
 
+	uint32_t communication_watchdog_time;
+
 	uint8_t storage[EVSE_STORAGE_PAGES][64];
 } EVSE;
 
