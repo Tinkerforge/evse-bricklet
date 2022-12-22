@@ -56,6 +56,37 @@ void evse_set_output(const uint16_t cp_duty_cycle, const bool contactor) {
 #endif
 
 	if(((bool)XMC_GPIO_GetInput(EVSE_RELAY_PIN)) != contactor) {
+		if(((cp_duty_cycle == 0) || (cp_duty_cycle == 1000)) && (!contactor)) {
+			// If the duty cycle is set to either 0% or 100% PWM and the contactor is supposed to be turned off,
+			// it is possible that the WARP Charger wants to turn off the charging session while the car
+			// still wants to charge. In this case we wait until the car actually stops charging and
+			// changes the resistance back to 2700 ohm before we turn the contactor off.
+			// This assures that the contactor is not switched under load.
+			//
+			// NOTE: In case of an emergency (for example a dc fault detection) the contactor is of course switched off
+			//       immediately and directly in the fault detection code without any regard to charging-state,
+			//       PWM value, resistance or similar.
+			//       This function is only called in non-emergency cases.
+
+			if(ads1118.cp_pe_resistance <= IEC61851_CP_RESISTANCE_STATE_B) {
+				if(evse.contactor_turn_off_time == 0) {
+					evse.contactor_turn_off_time = system_timer_get_ms();
+					return;
+				} else if(system_timer_is_time_elapsed_ms(evse.contactor_turn_off_time, 3*1000)) {
+					// The car has to respond within 3 seconds (see IEC 61851-1 standard table A.6 sequence 10.1),
+					// thus after 3 seconds we turn the contactor off, even if the car has not yet responded yet.
+					// In this case there may be some kind of communication error between wallbox and car and it
+					// is better to turn the contactor off, even if still under load.
+					evse.contactor_turn_off_time = 0;
+				} else {
+					return;
+				}
+			} else {
+				evse.contactor_turn_off_time = 0;
+			}
+		}
+
+
 		// Ignore all ADC measurements for a while if the contactor is
 		// switched on or off, to be sure that the resulting EMI spike does
 		// not give us a wrong measurement.
@@ -285,9 +316,15 @@ void evse_load_config(void) {
 	// This is either our first startup or something went wrong.
 	// We initialize the config data with sane default values.
 	if(page[EVSE_CONFIG_MAGIC_POS] != EVSE_CONFIG_MAGIC) {
-		evse.legacy_managed               = false;
+		evse.legacy_managed = false;
 	} else {
-		evse.legacy_managed               = page[EVSE_CONFIG_MANAGED_POS];
+		evse.legacy_managed = page[EVSE_CONFIG_MANAGED_POS];
+	}
+
+	if(page[EVSE_CONFIG_MAGIC2_POS] != EVSE_CONFIG_MAGIC2) {
+		evse.boost_mode_enabled = false;
+	} else {
+		evse.boost_mode_enabled = page[EVSE_CONFIG_BOOST_POS];
 	}
 
 	// Handle charging slot defaults
@@ -338,6 +375,9 @@ void evse_save_config(void) {
 	}
 	slot_default->magic = EVSE_CONFIG_SLOT_MAGIC;
 
+	page[EVSE_CONFIG_MAGIC2_POS] = EVSE_CONFIG_MAGIC2;
+	page[EVSE_CONFIG_BOOST_POS]  = evse.boost_mode_enabled;
+
 	bootloader_write_eeprom_page(EVSE_CONFIG_PAGE, page);
 }
 
@@ -349,17 +389,31 @@ void evse_factory_reset(void) {
 }
 
 uint16_t evse_get_cp_duty_cycle(void) {
-	return (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
+	uint16_t duty_cycle = (64000 - ccu4_pwm_get_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER))/64;
+	if((duty_cycle >= 4) && (duty_cycle != 1000) && evse.boost_mode_enabled) {
+		return duty_cycle - 4;
+	}
+
+	return duty_cycle;
 }
 
 void evse_set_cp_duty_cycle(const uint16_t duty_cycle) {
+	// According to IEC 61841-1 table A2 the duty cycle is allowed to be off by up to 5us.
+	// If boost mode is enabled we add 4us to the duty cycle. This means that we are still within the standard.
+	uint16_t adc_boost = 0;
+	if((duty_cycle != 0) && (duty_cycle != 1000) && evse.boost_mode_enabled) {
+		adc_boost = 4;
+	}
+
 	const uint16_t current_cp_duty_cycle = evse_get_cp_duty_cycle();
+	const uint16_t new_cp_duty_cycle     = (uint16_t)(64000 - (duty_cycle + adc_boost)*64);
+
 	if(current_cp_duty_cycle != duty_cycle) {
 		// Ignore the next 10 ADC measurements between CP/PE after we
 		// change PWM duty cycle of CP to be sure that that the measurement
 		// is not of any in-between state.
 		ads1118.cp_invalid_counter = MAX(2, ads1118.cp_invalid_counter);
-		ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - duty_cycle*64);
+		ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, new_cp_duty_cycle);
 	}
 }
 
@@ -402,6 +456,8 @@ void evse_init(void) {
 	evse.startup_time = system_timer_get_ms();
 	evse.charging_time = 0;
 	evse.communication_watchdog_time = 0;
+	evse.contactor_turn_off_time = 0;
+	evse.boost_mode_enabled = false;
 }
 
 void evse_tick_debug(void) {

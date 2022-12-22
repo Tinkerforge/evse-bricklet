@@ -69,3 +69,7 @@
 
 2022-11-16: 2.1.5 (40c98f6):
 - Add additional master communication watchdog
+
+202X-XX-XX: 2.1.6 (TBD):
+- Make sure contactor is not turned off under load, even if stop of charging is triggered by wallbox
+- Add API for get/set boost modus

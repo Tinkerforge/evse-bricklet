@@ -62,6 +62,8 @@
 #define EVSE_CONFIG_PAGE                3
 #define EVSE_CONFIG_MAGIC_POS           0
 #define EVSE_CONFIG_MANAGED_POS         1
+#define EVSE_CONFIG_MAGIC2_POS          2
+#define EVSE_CONFIG_BOOST_POS           3
 #define EVSE_CONFIG_SLOT_DEFAULT_POS    48
 
 typedef struct {
@@ -71,6 +73,7 @@ typedef struct {
 } __attribute__((__packed__)) EVSEChargingSlotDefault;
 
 #define EVSE_CONFIG_MAGIC               0x34567890
+#define EVSE_CONFIG_MAGIC2              0x45678923
 #define EVSE_CONFIG_SLOT_MAGIC          0x62870616
 
 #define EVSE_STORAGE_PAGES              16
@@ -98,6 +101,10 @@ typedef struct {
 	uint32_t charging_time;
 
 	uint32_t communication_watchdog_time;
+
+	uint32_t contactor_turn_off_time;
+
+	bool boost_mode_enabled;
 
 	uint8_t storage[EVSE_STORAGE_PAGES][64];
 } EVSE;
