@@ -1,7 +1,10 @@
 EVSE Bricklet
 =============
 
-Work in progress!
+This Bricklet together with the ESP32 Brick the NFC Bricklet and the
+RS485 Bricklet form the hardware used in the WARP Charger.
+
+See https://www.warp-charger.com/warp1.html for more details.
 
 This repository contains the firmware source code and the hardware design
 files. The documentation generator configs can be found at
