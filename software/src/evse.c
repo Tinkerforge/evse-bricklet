@@ -27,11 +27,11 @@
 #include "bricklib2/logging/logging.h"
 #include "bricklib2/utility/util_definitions.h"
 #include "bricklib2/bootloader/bootloader.h"
+#include "bricklib2/warp/contactor_check.h"
 
 #include "ads1118.h"
 #include "iec61851.h"
 #include "lock.h"
-#include "contactor_check.h"
 #include "led.h"
 #include "communication.h"
 #include "charging_slot.h"

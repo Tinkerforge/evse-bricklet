@@ -1,5 +1,5 @@
 /* evse-bricklet
- * Copyright (C) 2020 Olaf Lüke <olaf@tinkerforge.com>
+ * Copyright (C) 2020-2023 Olaf Lüke <olaf@tinkerforge.com>
  *
  * config_contactor_check.h: Config for welded/defective contactor check
  *
@@ -26,5 +26,7 @@
 
 #define CONTACTOR_CHECK_AC1_PIN P1_3
 #define CONTACTOR_CHECK_AC2_PIN P2_6
+
+#define CONTACTOR_CHECK_RELAY_PIN_IS_INVERTED false
 
 #endif

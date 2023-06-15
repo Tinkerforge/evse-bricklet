@@ -27,6 +27,7 @@
 #include "bricklib2/hal/ccu4_pwm/ccu4_pwm.h"
 #include "bricklib2/logging/logging.h"
 #include "bricklib2/utility/util_definitions.h"
+#include "bricklib2/warp/contactor_check.h"
 
 #include "configs/config_evse.h"
 #include "configs/config_contactor_check.h"
@@ -34,7 +35,6 @@
 #include "ads1118.h"
 #include "iec61851.h"
 #include "led.h"
-#include "contactor_check.h"
 #include "lock.h"
 #include "button.h"
 #include "charging_slot.h"
