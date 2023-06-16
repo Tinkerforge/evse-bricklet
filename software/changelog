@@ -73,3 +73,6 @@
 2022-12-22: 2.1.6 (eeb84d8):
 - Make sure contactor is not turned off under load, even if stop of charging is triggered by wallbox
 - Add API for get/set boost modus
+
+TBD: 2.1.7 (TBD):
+- Add blink led indicator code 2001-2010 for custom error code with 1-10 "blink amount"

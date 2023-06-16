@@ -163,6 +163,7 @@ void led_init(void) {
 	ccu4_pwm_init(EVSE_LED_PIN, EVSE_LED_SLICE_NUMBER, LED_MAX_DUTY_CYCLE-1); // ~9.7 kHz
 	ccu4_pwm_set_duty_cycle(EVSE_LED_SLICE_NUMBER, LED_OFF);
 #endif
+	led_reset_api_state();
 
 	led.state = LED_STATE_FLICKER;
 }
@@ -189,8 +190,9 @@ void led_tick_status_on(void) {
 void led_tick_status_blinking(void) {
 	if(led.blink_count >= led.blink_num) {
 		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_WAIT)) {
-			led.blink_last_time = system_timer_get_ms();
-			led.blink_count = 0;
+			led.blink_last_time         = system_timer_get_ms();
+			led.blink_count             = 0;
+			led.currently_in_wait_state = true;
 		}
 	} else if(led.blink_on) {
 		if(system_timer_is_time_elapsed_ms(led.blink_last_time, LED_BLINK_DURATION_ON)) {
@@ -256,9 +258,10 @@ void led_tick_status_api_ack(void) {
 			led.api_ack_counter++;
 		}
 	} else if((led.api_ack_counter >= 3) && (system_timer_is_time_elapsed_ms(led.api_ack_time, 2000))) {
-		led.api_ack_index   = 0;
-		led.api_ack_counter = 0;
-		led.api_ack_time    = system_timer_get_ms();
+		led.api_ack_index           = 0;
+		led.api_ack_counter         = 0;
+		led.api_ack_time            = system_timer_get_ms();
+		led.currently_in_wait_state = true;
 	}
 }
 
@@ -271,9 +274,10 @@ void led_tick_status_api_nack(void) {
 			led.api_nack_counter++;
 		}
 	} else if((led.api_nack_counter >= 1) && (system_timer_is_time_elapsed_ms(led.api_nack_time, 400))) {
-		led.api_nack_index   = 0;
-		led.api_nack_counter = 0;
-		led.api_nack_time    = system_timer_get_ms();
+		led.api_nack_index          = 0;
+		led.api_nack_counter        = 0;
+		led.api_nack_time           = system_timer_get_ms();
+		led.currently_in_wait_state = true;
 	}
 }
 
@@ -293,18 +297,15 @@ void led_tick_status_api_nag(void) {
 			led.api_nag_counter++;
 		}
 	} else if((led.api_nag_counter >= 2) && (system_timer_is_time_elapsed_ms(led.api_nag_time, 400))) {
-		led.api_nag_index   = 0;
-		led.api_nag_counter = 0;
-		led.api_nag_time    = system_timer_get_ms();
+		led.api_nag_index           = 0;
+		led.api_nag_counter         = 0;
+		led.api_nag_time            = system_timer_get_ms();
+		led.currently_in_wait_state = true;
 	}
 }
 
 void led_tick_status_api(void) {
-	if(system_timer_is_time_elapsed_ms(led.api_start, led.api_duration)) {
-		led_reset_api_state();
-		led_set_on(true);
-		return;
-	}
+	led.currently_in_wait_state = false;
 
 	if((led.api_indication >= 0) && (led.api_indication <= 255)) {
 		led_set_duty_cycle(6553 - led_cie1931[led.api_indication]/10);
@@ -314,10 +315,34 @@ void led_tick_status_api(void) {
 		led_tick_status_api_nack();
 	} else if(led.api_indication == 1003) {
 		led_tick_status_api_nag();
+	} else if(led.api_indication > 2000 && led.api_indication < 2011) {
+		if(led.blink_external != led.api_indication) {
+			// If external blinking is activated, turn LED off and start in off state
+			// with last time set to now.
+			// This way we don't waste any time and the first blinking pattern already has
+			// the correct amount of blinks.
+			led_set_duty_cycle(LED_OFF);
+			led.blink_num       = led.api_indication - 2000;
+			led.blink_count     = 0;
+			led.blink_on        = false;
+			led.blink_last_time = system_timer_get_ms();
+			led.blink_external  = led.api_indication;
+		}
+		led_tick_status_blinking();
+	}
+
+	if(system_timer_is_time_elapsed_ms(led.api_start, led.api_duration) && !led.currently_in_wait_state) {
+		led_reset_api_state();
+		led_set_on(true);
+		led.blink_external = -1;
 	}
 }
 
 void led_tick(void) {
+	if((led.state != LED_STATE_API) || (led.api_indication <= 2000) || (led.api_indication >= 2011)) {
+		led.blink_external  = -1;
+	}
+
 	switch(led.state) {
 		case LED_STATE_OFF:       led_tick_status_off();       break;
 		case LED_STATE_ON:        led_tick_status_on();        break;
