@@ -197,7 +197,11 @@ void iec61851_tick(void) {
 					iec61851_set_state(IEC61851_STATE_A);
 				}
 			}
-		} else if(!id3_mode && (ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A)) {
+		// Check for id3_mode and check if the relay is turned off already.
+		// If the relay is not turned off we force the state machine to go to state B before it can go to state A.
+		// In state B it will turn the relay off and then later go to state A,
+		// but during the change from B to A the ID.3 mode can trigger (which it wouldn't otherwise).
+		} else if(!XMC_GPIO_GetInput(EVSE_RELAY_PIN) && !id3_mode && (ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_A)) {
 			iec61851_set_state(IEC61851_STATE_A);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_B) {
 			iec61851_set_state(IEC61851_STATE_B);
