@@ -446,6 +446,7 @@ void evse_init(void) {
 	evse.calibration_state = 0;
 	evse.config_jumper_current_software = 6000; // default software configuration is 6A
 	evse.max_current_configured = 32000; // default user defined current ist 32A
+	evse.boost_mode_enabled = false;
 
 	evse_load_calibration();
 	evse_load_user_calibration();
@@ -457,7 +458,6 @@ void evse_init(void) {
 	evse.charging_time = 0;
 	evse.communication_watchdog_time = 0;
 	evse.contactor_turn_off_time = 0;
-	evse.boost_mode_enabled = false;
 }
 
 void evse_tick_debug(void) {

@@ -76,3 +76,6 @@
 
 2023-06-21: 2.1.7 (81eedf5):
 - Add blink led indicator code 2001-2010 for custom error code with 1-10 "blink amount"
+
+2023-XX-XX: 2.1.8 (TBD):
+- Fix read of stored startup value of boost mode
