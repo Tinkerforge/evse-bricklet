@@ -34,6 +34,7 @@
 #define EVSE_MOTOR_INPUT_SWITCH_PIN    P2_8
 
 #define EVSE_RELAY_PIN                 P1_1
+#define EVSE_CONTACTOR_PIN             P1_1
 #define EVSE_INPUT_GP_PIN              P2_2
 #define EVSE_OUTPUT_GP_PIN             P2_1
 
