@@ -338,7 +338,7 @@ void evse_load_config(void) {
 	} else {
 		// If there is no default the button slot is activated and everything else is deactivated
 		for(uint8_t i = 0; i < 18; i++) {
-			charging_slot.max_current_default[i]         = 0;
+			charging_slot.max_current_default[i]         = 32000;
 			charging_slot.active_default[i]              = false;
 			charging_slot.clear_on_disconnect_default[i] = false;
 		}
