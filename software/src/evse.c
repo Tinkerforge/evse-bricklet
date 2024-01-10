@@ -515,8 +515,6 @@ void evse_tick(void) {
 		// Nothing here
 		// calibration is done externally through API.
 		// We don't change anything while calibration is running
-	} else if((evse.config_jumper_current == EVSE_CONFIG_JUMPER_SOFTWARE) || (evse.config_jumper_current == EVSE_CONFIG_JUMPER_UNCONFIGURED)) {
-		led_set_blinking(2);
 	} else if(evse.calibration_error) {
 		led_set_blinking(3);
 	} else {
