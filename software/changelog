@@ -83,6 +83,6 @@
 - Wait for at least 30 seconds until contactor is turned on again after state D
 - Wait for at least 5 seconds until contactor is turned on again after charging was stopped
 
-2023-12-XX: 2.1.9 (TBD):
+2024-01-23: 2.1.9 (450e36d):
 - Slot is not blocked by default if extern control is enabled
 - LED API now has higher priority than breathing LED during charging
