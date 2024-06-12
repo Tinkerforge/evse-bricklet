@@ -88,7 +88,7 @@ uint8_t *ads1118_get_config_for_mosi(const uint8_t channel, const bool normal) {
 		config = /* continous mode */                                     ADS1118_CONFIG_GAIN_4_096V | ADS1118_CONFIG_DATA_RATE_32SPS | ADS1118_CONFIG_PULL_UP_ENABLE | ADS1118_CONFIG_NOP;
 	}
 
-	if(channel == 3) { 
+	if(channel == 3) {
 		// We use channel 3 for version testing, version testing is done by measuring between IN1 and GND
 		config |= ADS1118_CONFIG_INP_IS_IN1_AND_INN_IS_GND;
 	} else {
@@ -205,7 +205,7 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	// ===>
 	// 6574 LSB  => -12V
 	// 31643 LSB =>  12V
-	
+
 	ads1118.cp_voltage = SCALE(ads1118.cp_adc_value, 6574, 31643, -12000, 12000);
 	if(ads1118.cp_user_cal_active) {
 		ads1118.cp_voltage_calibrated = ads1118.cp_voltage * ads1118.cp_user_cal_mul / ads1118.cp_user_cal_div;

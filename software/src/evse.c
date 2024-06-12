@@ -483,7 +483,7 @@ void evse_tick(void) {
 	// Wait 12 seconds on first startup for DC-Wächter calibration
 	if(evse.startup_time != 0 && !system_timer_is_time_elapsed_ms(evse.startup_time, 12000)) {
 #if 0
-		// According to Alcona it is OK to calibrate during startup if 
+		// According to Alcona it is OK to calibrate during startup if
 		// a car is connected as long as the contactor doesn't activate.
 		if(evse.calibration_error || ((ads1118.cp_voltage_calibrated != 0) && (ads1118.cp_voltage_calibrated < 11000))) {
 			evse.calibration_error = true;
