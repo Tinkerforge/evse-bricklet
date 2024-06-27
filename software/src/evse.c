@@ -397,7 +397,12 @@ uint16_t evse_get_cp_duty_cycle(void) {
 	return duty_cycle;
 }
 
-void evse_set_cp_duty_cycle(const uint16_t duty_cycle) {
+void evse_set_cp_duty_cycle(uint16_t duty_cycle) {
+	const bool contactor_active = XMC_GPIO_GetInput(EVSE_RELAY_PIN);
+	const bool use_16a = !contactor_active && (duty_cycle != 0) && (duty_cycle != 1000);
+	if(use_16a) {
+		duty_cycle = 266;
+	}
 	// According to IEC 61841-1 table A2 the duty cycle is allowed to be off by up to 5us.
 	// If boost mode is enabled we add 4us to the duty cycle. This means that we are still within the standard.
 	uint16_t adc_boost = 0;

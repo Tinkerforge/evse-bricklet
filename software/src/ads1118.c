@@ -228,9 +228,10 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	// that we don't cancel the charging here, we increase the "infinite resistance"
 	// threshold for this scenario.
 	const bool id3_mode = (current_cp_duty_cycle != 1000) && !XMC_GPIO_GetInput(EVSE_RELAY_PIN);
-	if(id3_mode && (ads1118.cp_high_voltage + 500 > ads1118.cp_cal_max_voltage)) {
+	const bool has_forced_16a = !XMC_GPIO_GetInput(EVSE_RELAY_PIN) && (current_cp_duty_cycle == 266);
+	if(!has_forced_16a && id3_mode && (ads1118.cp_high_voltage + 500 > ads1118.cp_cal_max_voltage)) {
 		new_resistance = 0xFFFF;
-	} else if(!id3_mode && (ads1118.cp_high_voltage + 1000 > ads1118.cp_cal_max_voltage)) {
+	} else if(!has_forced_16a && !id3_mode && (ads1118.cp_high_voltage + 1000 > ads1118.cp_cal_max_voltage)) {
 		new_resistance = 0xFFFF;
 	} else {
 		// resistance divider, 910 ohm on EVSE
@@ -252,7 +253,12 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 			}
 		} else { // w/ PWM
 			uint32_t ma = iec61851_get_max_ma();
+
 			uint32_t index = SCALE(ma, 6000, 32000, 0, ADS1118_880OHM_CAL_NUM-1);
+			// Special handling for 16A forced mode
+			if(current_cp_duty_cycle == 266) {
+				index = 5;
+			}
 			if(ads1118.cp_user_cal_active) {
 				if(ads1118.cp_high_voltage > (ads1118.cp_cal_max_voltage - ads1118.cp_user_cal_880ohm[index])) {
 					new_resistance = 0xFFFF;
