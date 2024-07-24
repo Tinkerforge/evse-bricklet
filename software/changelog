@@ -7,7 +7,7 @@
 
 2021-02-08: 2.0.2 (1d667a6)
 - Make sure start_charging does nothing if autostart is disabled
-  and no car is connected 
+  and no car is connected
 
 2021-02-15: 2.0.3 (54f13b1)
 - Allow connected car during initial calibration
@@ -86,3 +86,6 @@
 2024-01-23: 2.1.9 (450e36d):
 - Slot is not blocked by default if extern control is enabled
 - LED API now has higher priority than breathing LED during charging
+
+2024-07-24: 2.1.10 (16e1d76):
+- Force PWM to 16A when car stops charging for improved CP/PE measurement
