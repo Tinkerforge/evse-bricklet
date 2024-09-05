@@ -89,3 +89,6 @@
 
 2024-07-24: 2.1.10 (16e1d76):
 - Force PWM to 16A when car stops charging for improved CP/PE measurement
+
+2024-09-05: 2.1.11 (TBD):
+- Make sure charging time is zeroed when car does not wake up

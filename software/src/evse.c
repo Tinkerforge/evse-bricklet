@@ -21,6 +21,8 @@
 
 #include "evse.h"
 
+#include <float.h>
+
 #include "configs/config_evse.h"
 #include "bricklib2/hal/ccu4_pwm/ccu4_pwm.h"
 #include "bricklib2/hal/system_timer/system_timer.h"
@@ -398,6 +400,12 @@ uint16_t evse_get_cp_duty_cycle(void) {
 }
 
 void evse_set_cp_duty_cycle(uint16_t duty_cycle) {
+	static float last_duty_cycle = FLT_MAX;
+	if(((last_duty_cycle == 0) || (last_duty_cycle == 1000)) && ((duty_cycle > 0) && (duty_cycle < 1000))) {
+		evse.charging_time = 0;
+	}
+	last_duty_cycle = duty_cycle;
+
 	const bool contactor_active = XMC_GPIO_GetInput(EVSE_RELAY_PIN);
 	const bool use_16a = !contactor_active && (duty_cycle != 0) && (duty_cycle != 1000);
 	if(use_16a) {

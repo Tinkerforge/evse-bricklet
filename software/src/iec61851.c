@@ -95,6 +95,30 @@ void iec61851_set_state(IEC61851State state) {
 	}
 }
 
+void iec61851_handle_time_in_b2(void) {
+	uint32_t ma = iec61851_get_max_ma();
+	if(iec61851.state == IEC61851_STATE_B) {
+		if(ma != 0) {
+			if(iec61851.time_in_b2 == 0) {
+				iec61851.time_in_b2 = system_timer_get_ms();
+			}
+		} else {
+			iec61851.time_in_b2 = 0;
+		}
+	} else {
+		iec61851.time_in_b2 = 0;
+	}
+
+	if(iec61851.time_in_b2 != 0) {
+		if(system_timer_is_time_elapsed_ms(iec61851.time_in_b2, 60*1000*3)) {
+			if(evse.charging_time == 0) {
+				evse.charging_time = system_timer_get_ms();
+			}
+		}
+	}
+}
+
+
 // TODO: We can find out that no cable is connected here
 //       if resistance > 10000. Do we want to have a specific
 //       state for that?
@@ -120,9 +144,9 @@ uint16_t iec61851_get_duty_cycle_for_ma(uint32_t ma) {
 	// In managed mode we support a temporary stop of charging without disconnecting the vehicle.
 	if(ma == 0) {
 		// 100% duty cycle => charging not allowed
-		// we do 100% here instead of 0% (both mean charging not allowed) 
+		// we do 100% here instead of 0% (both mean charging not allowed)
 		// to be able to still properly measure the resistance that the car applies.
-		return 1000; 
+		return 1000;
 	}
 
 	uint32_t duty_cycle;
@@ -133,7 +157,7 @@ uint16_t iec61851_get_duty_cycle_for_ma(uint32_t ma) {
 	}
 
 	// The standard defines 8% as minimum and 100% as maximum
-	return BETWEEN(80, duty_cycle, 1000); 
+	return BETWEEN(80, duty_cycle, 1000);
 }
 
 void iec61851_state_a(void) {
@@ -236,6 +260,8 @@ void iec61851_tick(void) {
 			iec61851_set_state(IEC61851_STATE_EF);
 		}
 	}
+
+	iec61851_handle_time_in_b2();
 
 	switch(iec61851.state) {
 		case IEC61851_STATE_A:  iec61851_state_a();  break;
