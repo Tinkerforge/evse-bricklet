@@ -92,3 +92,6 @@
 
 2024-09-05: 2.1.11 (95fdc72):
 - Make sure charging time is zeroed when car does not wake up
+
+2024-09-19: 2.1.12 (TBD):
+- Make sure charging time is always started when IEC61851 state changes to C
