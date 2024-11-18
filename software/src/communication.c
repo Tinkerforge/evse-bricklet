@@ -93,7 +93,7 @@ BootloaderHandleMessageResponse get_state(const GetState *data, GetState_Respons
 		} else {
 			response->charger_state = EVSE_CHARGER_STATE_READY_TO_CHARGE;
 		}
-	} else { 
+	} else {
 		response->charger_state = EVSE_CHARGER_STATE_NOT_CONNECTED;
 	}
 
@@ -263,15 +263,15 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 	}
 
 	logd("calibration_state: %d\n\r", evse.calibration_state);
-    if((evse.calibration_state == 0) && (data->state == 1)) {
-	    evse.calibration_state = 1;
+	if((evse.calibration_state == 0) && (data->state == 1)) {
+		evse.calibration_state = 1;
 		ads1118.cp_cal_mul = data->value;        // multiply by calibrated voltage
 		ads1118.cp_cal_div = ads1118.cp_voltage; // divide by uncalibrated voltage
 
 		response->success = true;
 		logd("cal mul %d, div %d\n\r", ads1118.cp_cal_mul, ads1118.cp_cal_div);
 	} else if((evse.calibration_state == 1) && (data->state == 2)) {
-	    evse.calibration_state = 2;
+		evse.calibration_state = 2;
 		ads1118.cp_cal_2700ohm = ads1118.cp_cal_max_voltage - (910*(ads1118.cp_high_voltage - ADS1118_DIODE_DROP) + 2700*ads1118.cp_high_voltage)/2700;
 
 		response->success = true;
@@ -285,16 +285,16 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 		response->success = true;
 		logd("cal 880ohm %d -> %d\n\r", evse.calibration_state-2, ads1118.cp_cal_880ohm[evse.calibration_state-2]);
 
-	    evse.calibration_state++;
+		evse.calibration_state++;
 		if(evse.calibration_state < 16) {
 			uint16_t dc = iec61851_get_duty_cycle_for_ma(6000 + (evse.calibration_state-2)*2000);
-			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - dc*64);	
+			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - dc*64);
 		} else if(evse.calibration_state == 16) {
 			// Set duty cycle to 0%
 			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - 0*64);
 		}
 	} else if((evse.calibration_state == 16) && (data->state == 17)) {
-	    evse.calibration_state = 0;
+		evse.calibration_state = 0;
 		ads1118.cp_cal_diff_voltage = data->value;
 
 		// Set duty cycle back to 100%
@@ -305,7 +305,7 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 
 	// Currently only two states/values are calibrated
 	// Other values may be calibrated in the future
-	} else { 
+	} else {
 		response->success = false;
 	}
 

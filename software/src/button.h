@@ -26,17 +26,17 @@
 #include <stdbool.h>
 
 typedef enum {
-    BUTTON_STATE_RELEASED,
-    BUTTON_STATE_PRESSED
+	BUTTON_STATE_RELEASED,
+	BUTTON_STATE_PRESSED
 } ButtonState;
 
 typedef struct {
-    ButtonState state;
+	ButtonState state;
 
-    bool last_value;
-    uint32_t last_change_time;
+	bool last_value;
+	uint32_t last_change_time;
 
-    bool was_pressed;
+	bool was_pressed;
 
 	uint32_t press_time;
 	uint32_t release_time;

@@ -34,27 +34,27 @@
 #define LED_STANDBY_TIME (1000*60*15) // Standby after 15 minutes
 
 typedef enum {
-    LED_STATE_OFF,
-    LED_STATE_ON,
-    LED_STATE_BLINKING,
-    LED_STATE_FLICKER,
-    LED_STATE_BREATHING,
-    LED_STATE_API
+	LED_STATE_OFF,
+	LED_STATE_ON,
+	LED_STATE_BLINKING,
+	LED_STATE_FLICKER,
+	LED_STATE_BREATHING,
+	LED_STATE_API
 } LEDState;
 
 typedef struct {
-    LEDState state;
+	LEDState state;
 
-    uint32_t on_time;
+	uint32_t on_time;
 
-    uint32_t blink_num;
-    uint32_t blink_count;
+	uint32_t blink_num;
+	uint32_t blink_count;
 	bool blink_on;
 	uint32_t blink_last_time;
 	int16_t blink_external;
 
-    bool flicker_on;
-    uint32_t flicker_last_time;
+	bool flicker_on;
+	uint32_t flicker_last_time;
 
 	uint32_t breathing_time;
 	int16_t breathing_index;

@@ -50,23 +50,23 @@
 #define IEC61851_PP_RESISTANCE_32A  150
 
 typedef enum {
-    IEC61851_STATE_A,  // Standby
-    IEC61851_STATE_B,  // Vehicle Detected
-    IEC61851_STATE_C,  // Ready (Charging)
-    IEC61851_STATE_D,  // Ready with ventilation
-    IEC61851_STATE_EF, // No Power / Error
+	IEC61851_STATE_A,  // Standby
+	IEC61851_STATE_B,  // Vehicle Detected
+	IEC61851_STATE_C,  // Ready (Charging)
+	IEC61851_STATE_D,  // Ready with ventilation
+	IEC61851_STATE_EF, // No Power / Error
 } IEC61851State;
 
 
 typedef struct {
-    IEC61851State state;
-    uint32_t last_state_change;
-    uint32_t last_state_c_end_time;
+	IEC61851State state;
+	uint32_t last_state_change;
+	uint32_t last_state_c_end_time;
 
-    uint32_t id3_mode_time;
+	uint32_t id3_mode_time;
 	uint32_t last_error_time;
 
-    uint32_t time_in_b2;
+	uint32_t time_in_b2;
 } IEC61851;
 
 extern IEC61851 iec61851;

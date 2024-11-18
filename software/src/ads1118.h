@@ -32,51 +32,51 @@
 #define ADS1118_880OHM_CAL_NUM 14
 
 typedef struct {
-    uint16_t cp_adc_value;
-    uint32_t cp_adc_sum;
-    uint16_t cp_adc_sum_count;
-    int16_t  cp_voltage;
-    int16_t  cp_voltage_calibrated;
-    int16_t  cp_high_voltage;
-    uint32_t cp_pe_resistance;
-    int16_t  cp_cal_max_voltage;  // Done by EVSE on-the-fly through continuous calibration
-    int16_t  cp_cal_min_voltage;  // Done by EVSE on-the-fly through continuous calibration
-    int16_t  cp_cal_diff_voltage; // Calibration done during flash/test through API
-    int16_t  cp_cal_mul;          // Calibration done during flash/test through API
-    int16_t  cp_cal_div;          // Calibration done during flash/test through API
-    int16_t  cp_cal_2700ohm;      // Calibration done during flash/test through API
-    int16_t  cp_cal_880ohm[ADS1118_880OHM_CAL_NUM]; // Calibration done during flash/test through API
+	uint16_t cp_adc_value;
+	uint32_t cp_adc_sum;
+	uint16_t cp_adc_sum_count;
+	int16_t  cp_voltage;
+	int16_t  cp_voltage_calibrated;
+	int16_t  cp_high_voltage;
+	uint32_t cp_pe_resistance;
+	int16_t  cp_cal_max_voltage;  // Done by EVSE on-the-fly through continuous calibration
+	int16_t  cp_cal_min_voltage;  // Done by EVSE on-the-fly through continuous calibration
+	int16_t  cp_cal_diff_voltage; // Calibration done during flash/test through API
+	int16_t  cp_cal_mul;          // Calibration done during flash/test through API
+	int16_t  cp_cal_div;          // Calibration done during flash/test through API
+	int16_t  cp_cal_2700ohm;      // Calibration done during flash/test through API
+	int16_t  cp_cal_880ohm[ADS1118_880OHM_CAL_NUM]; // Calibration done during flash/test through API
 
-    bool     cp_user_cal_active;
-    int16_t  cp_user_cal_diff_voltage; // Calibration done by user through API
-    int16_t  cp_user_cal_mul;          // Calibration done by user through API
-    int16_t  cp_user_cal_div;          // Calibration done by user through API
-    int16_t  cp_user_cal_2700ohm;      // Calibration done by user through API
-    int16_t  cp_user_cal_880ohm[ADS1118_880OHM_CAL_NUM]; // Calibration done by user through API
+	bool     cp_user_cal_active;
+	int16_t  cp_user_cal_diff_voltage; // Calibration done by user through API
+	int16_t  cp_user_cal_mul;          // Calibration done by user through API
+	int16_t  cp_user_cal_div;          // Calibration done by user through API
+	int16_t  cp_user_cal_2700ohm;      // Calibration done by user through API
+	int16_t  cp_user_cal_880ohm[ADS1118_880OHM_CAL_NUM]; // Calibration done by user through API
 
-    uint8_t  cp_invalid_counter;
+	uint8_t  cp_invalid_counter;
 
-    uint16_t pp_adc_value;
-    int16_t  pp_voltage;
-    uint32_t pp_pe_resistance;
-    uint8_t  pp_invalid_counter;
+	uint16_t pp_adc_value;
+	int16_t  pp_voltage;
+	uint32_t pp_pe_resistance;
+	uint8_t  pp_invalid_counter;
 
 	SPIFifo  spi_fifo;
 
-    uint16_t cp_adc_avg_queue[ADS1118_CP_ADC_AVG_NUM];
-    uint8_t cp_adc_avg_queue_pos;
+	uint16_t cp_adc_avg_queue[ADS1118_CP_ADC_AVG_NUM];
+	uint8_t cp_adc_avg_queue_pos;
 
-    bool moving_average_cp_adc_12v_active;
+	bool moving_average_cp_adc_12v_active;
 
-    MovingAverage moving_average_cp_adc_12v;
-    MovingAverage moving_average_cp;
-    MovingAverage moving_average_pp;
-    bool moving_average_cp_adc_12v_new;
-    bool moving_average_cp_new;
-    bool moving_average_pp_new;
+	MovingAverage moving_average_cp_adc_12v;
+	MovingAverage moving_average_cp;
+	MovingAverage moving_average_pp;
+	bool moving_average_cp_adc_12v_new;
+	bool moving_average_cp_new;
+	bool moving_average_pp_new;
 
-    bool version_found;
-    bool is_v15;
+	bool version_found;
+	bool is_v15;
 } ADS1118;
 
 extern ADS1118 ads1118;

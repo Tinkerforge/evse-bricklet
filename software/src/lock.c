@@ -125,7 +125,7 @@ void lock_tick(void) {
 				}
 			}
 		}
-		
+
 		ccu4_pwm_set_duty_cycle(EVSE_MOTOR_ENABLE_SLICE_NUMBER, lock.duty_cycle);
 	} else {
 		lock.duty_cycle = 6400;

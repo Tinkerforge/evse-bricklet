@@ -196,8 +196,8 @@ void ads1118_cp_voltage_from_miso(const uint8_t *miso) {
 	ads1118_cp_handle_continuous_calibration(ads1118.cp_adc_value);
 
 	// adc_sum and adc_sum_count is used during calibration and otherwise ignored
-    ads1118.cp_adc_sum += ads1118.cp_adc_value;
-    ads1118.cp_adc_sum_count++;
+	ads1118.cp_adc_sum += ads1118.cp_adc_value;
+	ads1118.cp_adc_sum_count++;
 
 	// 0.8217V => -12V
 	// 3.9554V =>  12V
