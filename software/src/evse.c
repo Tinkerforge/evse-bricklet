@@ -400,12 +400,6 @@ uint16_t evse_get_cp_duty_cycle(void) {
 }
 
 void evse_set_cp_duty_cycle(uint16_t duty_cycle) {
-	static float last_duty_cycle = FLT_MAX;
-	if(((last_duty_cycle == 0) || (last_duty_cycle == 1000)) && ((duty_cycle > 0) && (duty_cycle < 1000))) {
-		evse.charging_time = 0;
-	}
-	last_duty_cycle = duty_cycle;
-
 	const bool contactor_active = XMC_GPIO_GetInput(EVSE_RELAY_PIN);
 	const bool use_16a = !contactor_active && (duty_cycle != 0) && (duty_cycle != 1000);
 	if(use_16a) {
@@ -468,7 +462,7 @@ void evse_init(void) {
 	evse_init_lock_switch();
 
 	evse.startup_time = system_timer_get_ms();
-	evse.charging_time = 0;
+	evse.car_stopped_charging = false;
 	evse.communication_watchdog_time = 0;
 	evse.contactor_turn_off_time = 0;
 }
@@ -511,11 +505,6 @@ void evse_tick(void) {
 		if(system_timer_is_time_elapsed_ms(evse.factory_reset_time, 500)) {
 			evse_factory_reset();
 		}
-	}
-
-	// If the charging timer is running and the car is disconnected, stop the charging timer
-	if((evse.charging_time != 0) && (ads1118.cp_pe_resistance > 10000)) {
-		evse.charging_time = 0;
 	}
 
 	// Turn LED on (LED flicker off after startup/calibration)

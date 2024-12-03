@@ -163,7 +163,7 @@ typedef struct {
 	int16_t voltages[3];
 	uint32_t resistances[2];
 	uint8_t gpio[1];
-	uint32_t charging_time;
+	bool car_stopped_charging;
 	uint32_t time_since_state_change;
 	uint32_t uptime;
 } __attribute__((__packed__)) GetLowLevelState_Response;
@@ -343,7 +343,7 @@ typedef struct {
 	int16_t voltages[3];
 	uint32_t resistances[2];
 	uint8_t gpio[1];
-	uint32_t charging_time;
+	bool car_stopped_charging;
 	uint32_t time_since_state_change;
 	uint32_t uptime;
 	int16_t indication;

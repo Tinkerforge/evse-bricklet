@@ -95,3 +95,6 @@
 
 2024-09-19: 2.1.12 (5bebd42):
 - Make sure charging time is always started when IEC61851 state changes to C
+
+TBD: 2.1.13 (TBD):
+- Remove "charging time" and add "car stopped charging"

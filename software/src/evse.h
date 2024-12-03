@@ -98,7 +98,7 @@ typedef struct {
 	uint16_t max_current_configured;
 	bool calibration_error;
 
-	uint32_t charging_time;
+	bool car_stopped_charging;
 
 	uint32_t communication_watchdog_time;
 

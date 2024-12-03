@@ -80,9 +80,6 @@ void iec61851_set_state(IEC61851State state) {
 			// If state changed from to A we invalidate the managed current
 			// we have to handle the clear on dusconnect slots
 			charging_slot_handle_disconnect();
-
-			// If the charging timer is running and the car is disconnected, stop the charging timer
-			evse.charging_time = 0;
 		}
 
 		iec61851.state             = state;
@@ -106,9 +103,7 @@ void iec61851_handle_time_in_b2(void) {
 
 	if(iec61851.time_in_b2 != 0) {
 		if(system_timer_is_time_elapsed_ms(iec61851.time_in_b2, 60*1000*3)) {
-			if(evse.charging_time == 0) {
-				evse.charging_time = system_timer_get_ms();
-			}
+			evse.car_stopped_charging = true;
 		}
 	}
 }
@@ -166,6 +161,8 @@ void iec61851_state_a(void) {
 	}
 	// Apply +12V to CP, disable contactor
 	evse_set_output(1000, false);
+
+	evse.car_stopped_charging = false;
 }
 
 void iec61851_state_b(void) {
@@ -179,10 +176,7 @@ void iec61851_state_c(void) {
 	uint32_t ma = iec61851_get_max_ma();
 	evse_set_output(iec61851_get_duty_cycle_for_ma(ma), true);
 
-	// If we change to state C and the charging timer was not started, we start it
-	if(evse.charging_time == 0) {
-		evse.charging_time = system_timer_get_ms();
-	}
+	evse.car_stopped_charging = false;
 
 	led_set_breathing();
 }
@@ -248,7 +242,6 @@ void iec61851_tick(void) {
 			iec61851_set_state(IEC61851_STATE_B);
 		} else if(ads1118.cp_pe_resistance > IEC61851_CP_RESISTANCE_STATE_C) {
 			if(charging_slot_get_max_current() == 0) {
-				evse.charging_time = 0;
 				iec61851_set_state(IEC61851_STATE_B);
 			} else {
 				iec61851_set_state(IEC61851_STATE_C);
