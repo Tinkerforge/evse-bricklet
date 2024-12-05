@@ -329,6 +329,14 @@ void evse_load_config(void) {
 		evse.boost_mode_enabled = page[EVSE_CONFIG_BOOST_POS];
 	}
 
+	bool external_control_slot_to_default = false;
+	// We use MAGIC6 to check if the new handling for external control is already active.
+	// If the magic is not set, we activate the external control slot and set proper default values.
+	// After that we set the new magic, so this only happens after first update.
+	if(page[EVSE_CONFIG_MAGIC3_POS] != EVSE_CONFIG_MAGIC3) {
+		external_control_slot_to_default = true;
+	}
+
 	// Handle charging slot defaults
 	EVSEChargingSlotDefault *slot_default = (EVSEChargingSlotDefault *)(&page[EVSE_CONFIG_SLOT_DEFAULT_POS]);
 	if(slot_default->magic == EVSE_CONFIG_SLOT_MAGIC) {
@@ -345,14 +353,20 @@ void evse_load_config(void) {
 			charging_slot.clear_on_disconnect_default[i] = false;
 		}
 
-		// Those are default indices, _not_ slot indices.
-		charging_slot.max_current_default[2]         = 32000;
-		charging_slot.active_default[2]              = true;
-		charging_slot.clear_on_disconnect_default[2] = false;
+		// The default indices are offset by 2 to the slot indices
+		charging_slot.max_current_default[CHARGING_SLOT_BUTTON-2]         = 32000;
+		charging_slot.active_default[CHARGING_SLOT_BUTTON-2]              = true;
+		charging_slot.clear_on_disconnect_default[CHARGING_SLOT_BUTTON-2] = false;
 
-		charging_slot.max_current_default[5]         = 0;
-		charging_slot.active_default[5]              = evse.legacy_managed;
-		charging_slot.clear_on_disconnect_default[5] = evse.legacy_managed;
+		charging_slot.max_current_default[CHARGING_SLOT_LOAD_MANAGEMENT-2]         = 0;
+		charging_slot.active_default[CHARGING_SLOT_LOAD_MANAGEMENT-2]              = evse.legacy_managed;
+		charging_slot.clear_on_disconnect_default[CHARGING_SLOT_LOAD_MANAGEMENT-2] = evse.legacy_managed;
+	}
+
+	if(external_control_slot_to_default) {
+		charging_slot.max_current_default[CHARGING_SLOT_EXTERNAL-2]         = 32000;
+		charging_slot.active_default[CHARGING_SLOT_EXTERNAL-2]              = false;
+		charging_slot.clear_on_disconnect_default[CHARGING_SLOT_EXTERNAL-2] = false;
 	}
 
 	logd("Load config:\n\r");
@@ -379,6 +393,7 @@ void evse_save_config(void) {
 
 	page[EVSE_CONFIG_MAGIC2_POS] = EVSE_CONFIG_MAGIC2;
 	page[EVSE_CONFIG_BOOST_POS]  = evse.boost_mode_enabled;
+	page[EVSE_CONFIG_MAGIC3_POS] = EVSE_CONFIG_MAGIC3;
 
 	bootloader_write_eeprom_page(EVSE_CONFIG_PAGE, page);
 }
