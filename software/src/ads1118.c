@@ -19,6 +19,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
+ // Don't fix the sign-conversion warnings in the ads1118 for now.
+ // Currently this works well for WARP1 and really i don't want to touch it.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+
 #include "ads1118.h"
 #include "configs/config_ads1118.h"
 
@@ -173,13 +178,13 @@ void ads1118_cp_handle_continuous_calibration(const uint16_t adc_value) {
 		adc_max_value_avg = ads1118_cp_adc_avg_queue_get();
 
 		// The voltage in the queue is the continuous calibrated max voltage (ADC value),
-		int16_t voltage = SCALE(adc_max_value_avg, 6574, 31643, -12000, 12000);
+		const int16_t v = SCALE(adc_max_value_avg, 6574, 31643, -12000, 12000);
 
 		// Apply additional ADC calibration
 		if(ads1118.cp_user_cal_active) {
-			ads1118.cp_cal_max_voltage = voltage * ads1118.cp_user_cal_mul / ads1118.cp_user_cal_div;
+			ads1118.cp_cal_max_voltage = v * ads1118.cp_user_cal_mul / ads1118.cp_user_cal_div;
 		} else {
-			ads1118.cp_cal_max_voltage = voltage * ads1118.cp_cal_mul / ads1118.cp_cal_div;
+			ads1118.cp_cal_max_voltage = v * ads1118.cp_cal_mul / ads1118.cp_cal_div;
 		}
 
 		// For the min voltage we use a fixed difference that is calibrated on intial flashing
@@ -544,3 +549,5 @@ void ads1118_init(void) {
 void ads1118_tick(void) {
 	coop_task_tick(&ads1118_task);
 }
+
+#pragma GCC diagnostic pop

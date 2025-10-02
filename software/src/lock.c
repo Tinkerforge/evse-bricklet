@@ -27,6 +27,7 @@
 #include "bricklib2/hal/ccu4_pwm/ccu4_pwm.h"
 #include "bricklib2/logging/logging.h"
 #include "bricklib2/hal/system_timer/system_timer.h"
+#include "bricklib2/utility/util_definitions.h"
 #include "configs/config_evse.h"
 #include "evse.h"
 
@@ -72,9 +73,7 @@ void lock_tick(void) {
 		// This creates about 1 second of slow PWM run-up to reduce power draw from lock motor
 		if(system_timer_is_time_elapsed_ms(lock.last_duty_cycle_update, 1)) {
 			lock.last_duty_cycle_update = system_timer_get_ms();
-			if(lock.duty_cycle >= 0) {
-				lock.duty_cycle -= 5;
-			}
+			lock.duty_cycle -= MIN(5, lock.duty_cycle);
 		}
 
 		if(evse.has_lock_switch) {

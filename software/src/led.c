@@ -322,7 +322,7 @@ void led_tick_status_api(void) {
 			// This way we don't waste any time and the first blinking pattern already has
 			// the correct amount of blinks.
 			led_set_duty_cycle(LED_OFF);
-			led.blink_num       = led.api_indication - 2000;
+			led.blink_num       = (uint32_t)(led.api_indication - 2000);
 			led.blink_count     = 0;
 			led.blink_on        = false;
 			led.blink_last_time = system_timer_get_ms();

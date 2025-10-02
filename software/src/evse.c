@@ -248,12 +248,12 @@ void evse_save_calibration(void) {
 	uint32_t page[EEPROM_PAGE_SIZE/sizeof(uint32_t)];
 
 	page[EVSE_CALIBRATION_MAGIC_POS]       = EVSE_CALIBRATION_MAGIC;
-	page[EVSE_CALIBRATION_MUL_POS]         = ads1118.cp_cal_mul          + INT16_MAX;
-	page[EVSE_CALIBRATION_DIV_POS]         = ads1118.cp_cal_div          + INT16_MAX;
-	page[EVSE_CALIBRATION_DIFF_POS]        = ads1118.cp_cal_diff_voltage + INT16_MAX;
-	page[EVSE_CALIBRATION_2700_POS]        = ads1118.cp_cal_2700ohm      + INT16_MAX;
+	page[EVSE_CALIBRATION_MUL_POS]         = (uint32_t)(ads1118.cp_cal_mul          + INT16_MAX);
+	page[EVSE_CALIBRATION_DIV_POS]         = (uint32_t)(ads1118.cp_cal_div          + INT16_MAX);
+	page[EVSE_CALIBRATION_DIFF_POS]        = (uint32_t)(ads1118.cp_cal_diff_voltage + INT16_MAX);
+	page[EVSE_CALIBRATION_2700_POS]        = (uint32_t)(ads1118.cp_cal_2700ohm      + INT16_MAX);
 	for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
-		page[EVSE_CALIBRATION_880_POS + i] = ads1118.cp_cal_880ohm[i]    + INT16_MAX;
+		page[EVSE_CALIBRATION_880_POS + i] = (uint32_t)(ads1118.cp_cal_880ohm[i]    + INT16_MAX);
 	}
 
 	bootloader_write_eeprom_page(EVSE_CALIBRATION_PAGE, page);
@@ -276,13 +276,13 @@ void evse_load_user_calibration(void) {
 			ads1118.cp_user_cal_880ohm[i] = 0;
 		}
 	} else {
-		ads1118.cp_user_cal_active        = page[EVSE_USER_CALIBRATION_ACTIV_POS];
-		ads1118.cp_user_cal_mul           = page[EVSE_USER_CALIBRATION_MUL_POS]     - INT16_MAX;
-		ads1118.cp_user_cal_div           = page[EVSE_USER_CALIBRATION_DIV_POS]     - INT16_MAX;
-		ads1118.cp_user_cal_diff_voltage  = page[EVSE_USER_CALIBRATION_DIFF_POS]    - INT16_MAX;
-		ads1118.cp_user_cal_2700ohm       = page[EVSE_USER_CALIBRATION_2700_POS]    - INT16_MAX;
+		ads1118.cp_user_cal_active        = (int32_t)page[EVSE_USER_CALIBRATION_ACTIV_POS];
+		ads1118.cp_user_cal_mul           = (int32_t)page[EVSE_USER_CALIBRATION_MUL_POS]     - INT16_MAX;
+		ads1118.cp_user_cal_div           = (int32_t)page[EVSE_USER_CALIBRATION_DIV_POS]     - INT16_MAX;
+		ads1118.cp_user_cal_diff_voltage  = (int32_t)page[EVSE_USER_CALIBRATION_DIFF_POS]    - INT16_MAX;
+		ads1118.cp_user_cal_2700ohm       = (int32_t)page[EVSE_USER_CALIBRATION_2700_POS]    - INT16_MAX;
 		for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
-			ads1118.cp_user_cal_880ohm[i] = page[EVSE_USER_CALIBRATION_880_POS + i] - INT16_MAX;
+			ads1118.cp_user_cal_880ohm[i] = (int32_t)page[EVSE_USER_CALIBRATION_880_POS + i] - INT16_MAX;
 		}
 	}
 
@@ -299,12 +299,12 @@ void evse_save_user_calibration(void) {
 
 	page[EVSE_USER_CALIBRATION_MAGIC_POS]       = EVSE_USER_CALIBRATION_MAGIC;
 	page[EVSE_USER_CALIBRATION_ACTIV_POS]       = ads1118.cp_user_cal_active;
-	page[EVSE_USER_CALIBRATION_MUL_POS]         = ads1118.cp_user_cal_mul          + INT16_MAX;
-	page[EVSE_USER_CALIBRATION_DIV_POS]         = ads1118.cp_user_cal_div          + INT16_MAX;
-	page[EVSE_USER_CALIBRATION_DIFF_POS]        = ads1118.cp_user_cal_diff_voltage + INT16_MAX;
-	page[EVSE_USER_CALIBRATION_2700_POS]        = ads1118.cp_user_cal_2700ohm      + INT16_MAX;
+	page[EVSE_USER_CALIBRATION_MUL_POS]         = (uint32_t)(ads1118.cp_user_cal_mul          + INT16_MAX);
+	page[EVSE_USER_CALIBRATION_DIV_POS]         = (uint32_t)(ads1118.cp_user_cal_div          + INT16_MAX);
+	page[EVSE_USER_CALIBRATION_DIFF_POS]        = (uint32_t)(ads1118.cp_user_cal_diff_voltage + INT16_MAX);
+	page[EVSE_USER_CALIBRATION_2700_POS]        = (uint32_t)(ads1118.cp_user_cal_2700ohm      + INT16_MAX);
 	for(uint8_t i = 0; i < ADS1118_880OHM_CAL_NUM; i++) {
-		page[EVSE_USER_CALIBRATION_880_POS + i] = ads1118.cp_user_cal_880ohm[i]    + INT16_MAX;
+		page[EVSE_USER_CALIBRATION_880_POS + i] = (uint32_t)(ads1118.cp_user_cal_880ohm[i]    + INT16_MAX);
 	}
 
 	bootloader_write_eeprom_page(EVSE_USER_CALIBRATION_PAGE, page);

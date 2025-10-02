@@ -84,7 +84,7 @@ void led_set_on(const bool force);
 void led_set_off(void);
 void led_set_breathing(void);
 void led_set_blinking(const uint8_t num);
-void led_init();
-void led_tick();
+void led_init(void);
+void led_tick(void);
 
 #endif

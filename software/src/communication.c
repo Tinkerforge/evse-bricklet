@@ -252,7 +252,7 @@ BootloaderHandleMessageResponse get_charging_slot_default(const GetChargingSlotD
 BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Response *response) {
 	response->header.length = sizeof(Calibrate_Response);
 	logd("calibrate (iec61851.state %d): %d %x -> %d\n\r", iec61851.state, data->state, data->password, data->value);
-	if(((ads1118.cp_pe_resistance != 0xFFFF) && (evse.calibration_state == 0)) || (data->password != (0x0BB03200 + data->state))) {
+	if(((ads1118.cp_pe_resistance != 0xFFFF) && (evse.calibration_state == 0)) || (data->password != (0x0BB03200U + data->state))) {
 		response->success = false;
 		return HANDLE_MESSAGE_RESPONSE_NEW_MESSAGE;
 	}
@@ -282,7 +282,7 @@ BootloaderHandleMessageResponse calibrate(const Calibrate *data, Calibrate_Respo
 
 		evse.calibration_state++;
 		if(evse.calibration_state < 16) {
-			uint16_t dc = iec61851_get_duty_cycle_for_ma(6000 + (evse.calibration_state-2)*2000);
+			uint16_t dc = iec61851_get_duty_cycle_for_ma(6000U + (evse.calibration_state-2)*2000U);
 			ccu4_pwm_set_duty_cycle(EVSE_CP_PWM_SLICE_NUMBER, 64000 - dc*64);
 		} else if(evse.calibration_state == 16) {
 			// Set duty cycle to 0%
