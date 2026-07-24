@@ -102,3 +102,4 @@
 
 2026-XX-xx: 2.1.14 (TBD)
 - Only save to flash if config changed
+- Clear slot if no ev is connected and clear on disconnect is set
