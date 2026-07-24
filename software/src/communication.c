@@ -225,11 +225,15 @@ BootloaderHandleMessageResponse set_charging_slot_default(const SetChargingSlotD
 
 	const uint8_t slot = data->slot - 2;
 
-	charging_slot.max_current_default[slot]         = data->max_current;
-	charging_slot.active_default[slot]              = data->active;
-	charging_slot.clear_on_disconnect_default[slot] = data->clear_on_disconnect;
+	if((charging_slot.max_current_default[slot]         != data->max_current) ||
+	   (charging_slot.active_default[slot]              != data->active)      ||
+	   (charging_slot.clear_on_disconnect_default[slot] != data->clear_on_disconnect)) {
+		charging_slot.max_current_default[slot]         = data->max_current;
+		charging_slot.active_default[slot]              = data->active;
+		charging_slot.clear_on_disconnect_default[slot] = data->clear_on_disconnect;
 
-	evse_save_config();
+		evse_save_config();
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
@@ -501,8 +505,10 @@ BootloaderHandleMessageResponse factory_reset(const FactoryReset *data) {
 }
 
 BootloaderHandleMessageResponse set_boost_mode(const SetBoostMode *data) {
-	evse.boost_mode_enabled = data->boost_mode_enabled;
-	evse_save_config();
+	if(evse.boost_mode_enabled != data->boost_mode_enabled) {
+		evse.boost_mode_enabled = data->boost_mode_enabled;
+		evse_save_config();
+	}
 
 	return HANDLE_MESSAGE_RESPONSE_EMPTY;
 }
