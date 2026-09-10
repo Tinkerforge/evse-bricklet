@@ -100,6 +100,6 @@
 - Remove "charging time" and add "car stopped charging"
 - Set external charging slot to enabled with 32A on first boot of 2.1.13
 
-2026-09-10: 2.1.14 (TBD)
+2026-09-10: 2.1.14 (eb13afe8)
 - Only save to flash if config changed
 - Set slot to default value, if defaults change
