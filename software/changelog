@@ -103,3 +103,6 @@
 2026-09-10: 2.1.14 (eb13afe8)
 - Only save to flash if config changed
 - Set slot to default value, if defaults change
+
+2026-09-10: 2.1.15 (TBD)
+- Handle clear on disconnect for charge manager slot as level trigger
